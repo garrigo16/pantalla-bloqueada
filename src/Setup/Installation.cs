@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 // Autor: Miquel Garrigo
 internal interface IInstallHost
@@ -13,7 +12,6 @@ internal interface IInstallHost
 
 internal sealed class PackageInstallation
 {
-    internal const string Defaults = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<AppSettings>\n  <DeviceName />\n  <TimeoutSeconds>20</TimeoutSeconds>\n  <KeepAwake>true</KeepAwake>\n  <ShowClock>true</ShowClock>\n  <ImagePath />\n  <SimulateActivity>true</SimulateActivity>\n  <ActivityIntervalSeconds>300</ActivityIntervalSeconds>\n  <AutoActivate>true</AutoActivate>\n  <IdleSeconds>300</IdleSeconds>\n</AppSettings>\n";
     internal readonly string DirectoryPath;
     internal string ExecutablePath { get { return OwnedPath("PantallaBloqueada.exe"); } }
     internal string ExpectedStartup { get { return "\"" + ExecutablePath + "\" --background"; } }
@@ -64,7 +62,7 @@ internal sealed class PackageInstallation
             Store("Desinstalar.exe", uninstaller, backups);
             if (!File.Exists(OwnedPath("ajustes.xml")))
                 Store("ajustes.xml", previousSettingsPath != null && File.Exists(previousSettingsPath)
-                    ? File.ReadAllBytes(previousSettingsPath) : new UTF8Encoding(false).GetBytes(Defaults), backups);
+                    ? File.ReadAllBytes(previousSettingsPath) : AppSettings.DefaultXml(), backups);
             // Actualizar respeta si el usuario había desactivado el inicio automático.
             bool wasEnabled = previousStartup != null && previousStartup.EndsWith("PantallaBloqueada.exe\" --background", StringComparison.OrdinalIgnoreCase);
             if (!updating || wasEnabled)

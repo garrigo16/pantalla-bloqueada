@@ -4,11 +4,7 @@ $repo = Split-Path -Parent $PSScriptRoot
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $repo 'artifacts' }
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 $build = Join-Path $repo 'build'
-$framework = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319'
-if (-not (Test-Path -LiteralPath (Join-Path $framework 'csc.exe'))) { $framework = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319' }
-$compiler = Join-Path $framework 'csc.exe'
-$wpf = Join-Path $framework 'WPF'
-$references = @('PresentationCore','PresentationFramework','WindowsBase') | ForEach-Object { '/reference:' + (Join-Path $wpf ($_ + '.dll')) }
+. (Join-Path $PSScriptRoot 'Compiler.ps1')
 $appSources = @(Get-ChildItem -LiteralPath (Join-Path $repo 'src\App') -Filter '*.cs' -File | Select-Object -ExpandProperty FullName)
 $shared = @(Get-ChildItem -LiteralPath (Join-Path $repo 'src\Shared') -Filter '*.cs' -File | Select-Object -ExpandProperty FullName)
 $setup = @(Get-ChildItem -LiteralPath (Join-Path $repo 'src\Setup') -Filter '*.cs' -File | Select-Object -ExpandProperty FullName)

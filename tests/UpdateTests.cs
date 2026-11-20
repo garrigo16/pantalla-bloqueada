@@ -92,6 +92,7 @@ internal static class UpdateTests
             return 0;
         }
         catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
+        finally { if (root != null && Directory.Exists(root)) Directory.Delete(root, true); }
     }
 
     private static async Task Run()

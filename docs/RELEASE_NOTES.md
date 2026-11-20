@@ -1,9 +1,11 @@
-Activación automática tras un número configurable de segundos sin usar teclado ni ratón.
+Todos los easter eggs, con modo configurable desde la bandeja.
 
-- Nueva casilla **Activar automáticamente por inactividad**, inicialmente a **300 segundos (5 minutos)**.
-- Tiempo editable entre 1 y 86400 segundos y opción para desactivar la función.
-- El contador queda en pausa mientras está activa la simulación o está abierto el configurador.
-- Después de salir manualmente espera actividad nueva para evitar una reapertura inmediata.
-- Respeta el bloqueo real de Windows y conserva todos los ajustes anteriores.
+- Houdini, sello de Enter y tres cafés, siesta, ayuda de vacaciones y respuestas a teclas equivocadas.
+- Aporreo por niveles: «La desesperación no forma parte de los protocolos de seguridad» y cortinilla tímida.
+- Abracadabra, Konami y mascota con gafas, ojos en la oscuridad, reloj que esquiva y post-it de triple clic.
+- Redes ficticias, calendario con guiños, entrenamiento de un píxel, logros privados y sorpresas del configurador e instalador.
+- Modos Todos, Sarcasmo suave, Mascota y animaciones y Discreto. Despertar del fondo durante cuatro segundos configurable.
+- Reacciones efímeras solo en el monitor elegido, sin sonido ni registro de texto. El atajo sigue disponible durante las animaciones.
+- Ajustes iniciales compartidos entre app e instalador, compilación sin configuración duplicada y limpieza de temporales de pruebas.
 
-Se distribuye mediante el actualizador integrado. También puedes instalarla abriendo **Iniciar.exe** desde esta versión.
+Conserva la activación por inactividad configurable, el actualizador cada 12 horas y tus ajustes. Instala desde el botón de actualización o abre **Iniciar.exe**.

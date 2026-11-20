@@ -97,7 +97,7 @@ internal static class SetupProgram
         using (var timer = new System.Windows.Forms.Timer { Interval = 4500 })
         {
             window.Text = "Pantalla bloqueada";
-            window.ClientSize = new Size(440, 155);
+            window.ClientSize = new Size(440, 190);
             window.StartPosition = FormStartPosition.CenterScreen;
             window.FormBorderStyle = FormBorderStyle.FixedDialog;
             window.MaximizeBox = false;
@@ -114,6 +114,9 @@ internal static class SetupProgram
                 ForeColor = Color.FromArgb(190, 205, 230), Font = new Font("Segoe UI", 10),
                 Size = new Size(395, 60), Location = new Point(26, 76)
             });
+            window.Controls.Add(new Label { Text = removed ? "Lo entendemos. Pasa en las mejores oficinas." : "Lo que pasa en el escritorio, se queda en el escritorio.",
+                ForeColor = Color.FromArgb(150, 175, 210), Font = new Font("Segoe UI", 9),
+                Size = new Size(395, 30), Location = new Point(26, 147) });
             timer.Tick += delegate { window.Close(); };
             window.Shown += delegate { timer.Start(); };
             Application.Run(window);

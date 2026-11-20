@@ -31,6 +31,12 @@ El contador solo actúa mientras la simulación está desactivada. No interrumpe
 
 Para pasar desde una copia antigua sin actualizador, abre una vez el instalador de esta versión. Las siguientes actualizaciones se realizan desde la app.
 
+## Bromas y easter eggs
+
+En **Bromas y easter eggs** puedes elegir Todos (inicial), Sarcasmo suave, Mascota y animaciones o Discreto. El despertar breve del fondo tiene una casilla independiente: una tecla lo muestra cuatro segundos y vuelve a negro.
+
+Las reacciones aparecen solo en la pantalla elegida y se retiran solas, sin reiniciar el plazo para pasar a negro. No tienen sonido ni guardan texto. Los contadores y logros viven en memoria hasta la siguiente simulación. El [catálogo de guiños](docs/EASTER_EGGS.md) contiene los gestos, por si quieres destripar la sorpresa.
+
 ## Compilar y comprobar
 
 Windows 10/11 con .NET Framework 4.8 y PowerShell. Sin paquetes externos.
@@ -40,12 +46,12 @@ Windows 10/11 con .NET Framework 4.8 y PowerShell. Sin paquetes externos.
 ./scripts/Test.ps1
 ```
 
-Los instaladores y el ZIP se generan en `artifacts/`. Las pruebas comprueban versiones, errores de red, descargas y redirecciones, integridad, estado de búsqueda, conservación de ajustes y recuperación ante fallos de instalación. No simulan actividad de ratón ni crean ventanas de bloqueo durante la integración continua.
+Los instaladores y el ZIP se generan en `artifacts/`. Las pruebas comprueban versiones, redirecciones, integridad, búsquedas, conservación de ajustes, recuperación ante fallos, inactividad, secuencias de easter eggs y filtros de entrada. No simulan actividad de ratón ni crean ventanas de bloqueo durante la integración continua. Los temporales de pruebas se retiran al terminar.
 
 ## Publicar una versión
 
 1. Cambia `Current` y `Assembly` en `src/Shared/VersionInfo.cs` y actualiza `docs/RELEASE_NOTES.md`.
-2. Al subir el cambio de versión a `main` se publica automáticamente. También puedes ejecutar **Actions → Publicar versión → Run workflow** con la etiqueta correspondiente, por ejemplo `v1.2.0`, o enviar una etiqueta nueva `v*` a Git.
+2. Al subir el cambio de versión a `main` se publica automáticamente. También puedes ejecutar **Actions → Publicar versión → Run workflow** con la etiqueta correspondiente, por ejemplo `v1.3.0`, o enviar una etiqueta nueva `v*` a Git.
 3. El flujo compila y comprueba los instaladores, prepara un borrador con los archivos y después publica la versión estable. No sobrescribe versiones ya publicadas.
 
 Los ajustes, las imágenes personales, la caché de actualizaciones y los ejecutables generados quedan fuera del repositorio. Los binarios se distribuyen como archivos de las versiones.

@@ -14,7 +14,6 @@ using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
-using System.Xml.Serialization;
 using Microsoft.Win32;
 using Forms = System.Windows.Forms;
 
@@ -87,9 +86,10 @@ internal static class Native
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] internal static extern short VkKeyScanEx(char key, IntPtr layout);
     [DllImport("user32.dll", SetLastError = true)] internal static extern bool SetWindowPos(IntPtr hwnd, IntPtr after, int x, int y, int width, int height, uint flags);
     [DllImport("kernel32.dll", SetLastError = true)] internal static extern uint SetThreadExecutionState(uint flags);
+    [DllImport("user32.dll")] internal static extern short GetAsyncKeyState(int key);
 }
 
-internal sealed class LockController : IDisposable
+internal sealed partial class LockController : IDisposable
 {
     private readonly Application app;
     private HwndSource source;
@@ -127,6 +127,7 @@ internal sealed class LockController : IDisposable
     {
         app = application;
         settings = preferences ?? AppSettings.Load();
+        InitializeFun();
         try
         {
             var parameters = new HwndSourceParameters("PantallaBloqueada.Controller");
@@ -186,6 +187,8 @@ internal sealed class LockController : IDisposable
                 try
                 {
                     activityDirection = -Activity.MoveOnePixel(activityDirection);
+                    var funWindow = FunWindow();
+                    if (funWindow != null) funWindow.React(fun.Pixel(!funWindow.IsDark), null);
                     nextActivity = elapsed.Elapsed.TotalSeconds + settings.ActivityIntervalSeconds;
                 }
                 catch (Exception ex)
@@ -234,12 +237,14 @@ internal sealed class LockController : IDisposable
         else Show();
     }
 
-    private void Show()
+    private void Show(bool resetFun = true)
     {
         if (disposed || activating || windows.Count > 0) return;
         activating = true;
         try
         {
+            if (resetFun) fun.Reset();
+            lastPointer = null;
             if (configuration != null) configuration.Close();
             var screens = Forms.Screen.AllScreens;
             var selected = Forms.Screen.PrimaryScreen;
@@ -273,6 +278,10 @@ internal sealed class LockController : IDisposable
     private void AddWindow(Forms.Screen screen, bool showImage)
     {
         var window = new LockWindow(screen, showImage, settings);
+        window.KeyPressed += FunKeyDown;
+        window.TextEntered += FunTextInput;
+        window.MousePressed += FunMouseDown;
+        window.PointerMoved += FunMouseMove;
         windows.Add(window);
         window.Closed += delegate { if (!closing) Hide(); };
         window.Show();
@@ -280,7 +289,7 @@ internal sealed class LockController : IDisposable
 
     private void DisplaySettingsChanged(object sender, EventArgs e)
     {
-        Dispatch(delegate { if (windows.Count > 0) { Hide(); Show(); } });
+        Dispatch(delegate { if (windows.Count > 0) { Hide(); Show(false); } });
     }
 
     private void SessionChanged(object sender, SessionSwitchEventArgs e)
@@ -297,7 +306,7 @@ internal sealed class LockController : IDisposable
     {
         if (windows.Count != 0) return;
         if (configuration != null) { configuration.Activate(); return; }
-        configuration = new SettingsWindow(settings, updates);
+        configuration = new SettingsWindow(settings, updates, fun.Stats);
         configuration.Saved += delegate(AppSettings updated) { settings = updated; if (idle != null) idle.Reset(); };
         configuration.Closed += delegate { configuration = null; };
         configuration.Show();
@@ -356,7 +365,7 @@ internal sealed class LockController : IDisposable
     }
 }
 
-internal sealed class LockWindow : Window
+internal sealed partial class LockWindow : Window
 {
     private TextBlock clock;
     private TextBlock date;
@@ -371,6 +380,7 @@ internal sealed class LockWindow : Window
     internal LockWindow(Forms.Screen screen, bool showImage, AppSettings settings)
     {
         Screen = screen;
+        preferences = settings;
         HasImage = showImage;
         Title = "Pantalla bloqueada";
         WindowStartupLocation = WindowStartupLocation.Manual;
@@ -384,8 +394,9 @@ internal sealed class LockWindow : Window
         Surface = new Grid { Background = Brushes.Black, ClipToBounds = true };
         Content = Surface;
         if (showImage) BuildLockImage(settings);
+        InitializeFunWindow();
 
-        // No hay instrucciones ni acciones de desbloqueo en la superficie.
+        // El atajo de salida no se anuncia en la superficie.
         SourceInitialized += delegate
         {
             var hwndSource = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
@@ -401,11 +412,13 @@ internal sealed class LockWindow : Window
                 rect.X, rect.Y, rect.Width, rect.Height, 0x0040))
                 throw new Win32Exception(Marshal.GetLastWin32Error());
         };
-        Closed += delegate { if (timer != null) timer.Stop(); };
+        Closed += delegate { if (timer != null) timer.Stop(); DisposeFunWindow(); };
     }
 
     internal void Darken()
     {
+        darkened = true;
+        peekTimer.Stop();
         if (imageLayer != null) imageLayer.Visibility = Visibility.Collapsed;
         if (timer != null) timer.Stop();
     }
@@ -441,6 +454,7 @@ internal sealed class LockWindow : Window
             Margin = new Thickness(0, 155, 0, 0),
             Effect = new DropShadowEffect { BlurRadius = 22, ShadowDepth = 2, Opacity = 0.22 }
         };
+        timePanelElement = timePanel;
         clock = new TextBlock
         {
             FontFamily = new FontFamily("Segoe UI Variable Display, Segoe UI"),
@@ -457,13 +471,15 @@ internal sealed class LockWindow : Window
         timePanel.Children.Add(date);
         canvas.Children.Add(timePanel);
         timePanel.Visibility = settings.ShowClock ? Visibility.Visible : Visibility.Collapsed;
-        canvas.Children.Add(new TextBlock
+        var network = new TextBlock
         {
             FontFamily = new FontFamily("Segoe MDL2 Assets"), Text = "\uE839", FontSize = 24,
             Foreground = Brushes.White, HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 45, 40),
             Opacity = 0.9, IsHitTestVisible = false
-        });
+        };
+        networkIconElement = network;
+        canvas.Children.Add(network);
         timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         timer.Tick += delegate { UpdateClock(); };
         UpdateClock();
@@ -474,6 +490,6 @@ internal sealed class LockWindow : Window
     {
         var now = DateTime.Now;
         clock.Text = now.ToString("HH:mm", culture);
-        date.Text = now.ToString("dddd, d 'de' MMMM", culture);
+        date.Text = now.ToString("dddd, d 'de' MMMM", culture) + EasterEggEngine.CalendarSuffix(now, preferences.Humor);
     }
 }

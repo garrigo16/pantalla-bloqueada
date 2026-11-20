@@ -8,66 +8,10 @@ using System.Windows.Interop;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Threading;
-using System.Xml.Serialization;
 using Microsoft.Win32;
 using Forms = System.Windows.Forms;
 
 // Autor: Miquel Garrigo
-public sealed class AppSettings
-{
-    public string DeviceName { get; set; }
-    public int TimeoutSeconds { get; set; }
-    public bool KeepAwake { get; set; }
-    public bool ShowClock { get; set; }
-    public string ImagePath { get; set; }
-    public bool SimulateActivity { get; set; }
-    public int ActivityIntervalSeconds { get; set; }
-    public bool AutoActivate { get; set; }
-    public int IdleSeconds { get; set; }
-    internal static string FilePath { get { return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ajustes.xml"); } }
-
-    public AppSettings()
-    {
-        DeviceName = "";
-        TimeoutSeconds = 20;
-        KeepAwake = true;
-        ShowClock = true;
-        ImagePath = "";
-        SimulateActivity = true;
-        ActivityIntervalSeconds = 300;
-        AutoActivate = true;
-        IdleSeconds = 300;
-    }
-
-    internal static AppSettings Load()
-    {
-        try
-        {
-            using (var input = File.OpenRead(FilePath))
-            {
-                var settings = (AppSettings)new XmlSerializer(typeof(AppSettings)).Deserialize(input);
-                if (settings.TimeoutSeconds < 0 || settings.TimeoutSeconds > 86400) settings.TimeoutSeconds = 20;
-                if (settings.ActivityIntervalSeconds < 15 || settings.ActivityIntervalSeconds > 600) settings.ActivityIntervalSeconds = 300;
-                if (settings.IdleSeconds < 1 || settings.IdleSeconds > 86400) settings.IdleSeconds = 300;
-                return settings;
-            }
-        }
-        catch { return new AppSettings(); }
-    }
-
-    internal void Save()
-    {
-        string temp = FilePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
-        try
-        {
-            using (var output = File.Create(temp)) new XmlSerializer(typeof(AppSettings)).Serialize(output, this);
-            if (File.Exists(FilePath)) File.Replace(temp, FilePath, null);
-            else File.Move(temp, FilePath);
-        }
-        finally { if (File.Exists(temp)) File.Delete(temp); }
-    }
-}
-
 internal static class Startup
 {
     private const string KeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
@@ -116,6 +60,11 @@ internal sealed class SettingsWindow : Window
     private readonly TextBox activityInterval;
     private readonly CheckBox autoActivate;
     private readonly TextBox idleSeconds;
+    private readonly ComboBox humorMode;
+    private readonly CheckBox wakeOnInput;
+    private readonly TextBlock timeoutHint, activityHint;
+    private int titleClicks;
+    private DateTime titleClicked;
     private readonly TextBlock imageLabel;
     private readonly TextBlock error;
     private readonly UpdateManager updates;
@@ -125,7 +74,7 @@ internal sealed class SettingsWindow : Window
     private readonly Button installUpdate;
     private string imagePath;
 
-    internal SettingsWindow(AppSettings settings, UpdateManager updateManager = null)
+    internal SettingsWindow(AppSettings settings, UpdateManager updateManager = null, FunStats statistics = null)
     {
         updates = updateManager;
         Title = "Pantalla bloqueada · Configuración";
@@ -158,7 +107,7 @@ internal sealed class SettingsWindow : Window
   <Grid.RowDefinitions><RowDefinition Height='*'/><RowDefinition Height='Auto'/></Grid.RowDefinitions>
   <ScrollViewer VerticalScrollBarVisibility='Auto' HorizontalScrollBarVisibility='Disabled'>
     <StackPanel Margin='30,25,30,18'>
-      <TextBlock Text='Tu pantalla, en pausa.' FontSize='27' FontWeight='SemiBold'/>
+      <TextBlock x:Name='funHeading' Text='Tu pantalla, en pausa.' FontSize='27' FontWeight='SemiBold'/>
       <TextBlock Text='Ajusta la simulación a tu espacio de trabajo.' Foreground='#A6B6D1' Margin='0,8,0,27' TextWrapping='Wrap'/>
       <TextBlock Text='Pantalla con el fondo' Margin='0,0,0,9' FontWeight='SemiBold'/>
       <Grid><Grid.ColumnDefinitions><ColumnDefinition Width='*'/><ColumnDefinition Width='Auto'/></Grid.ColumnDefinitions>
@@ -175,7 +124,7 @@ internal sealed class SettingsWindow : Window
       <StackPanel Orientation='Horizontal'>
         <TextBox x:Name='timeout' Width='92' MaxLength='5'/><TextBlock Text='segundos' Margin='12,0,0,0' VerticalAlignment='Center'/>
       </StackPanel>
-      <TextBlock Text='0 mantiene el fondo visible sin límite de tiempo.' Foreground='#A6B6D1' FontSize='14' Margin='0,8,0,23' TextWrapping='Wrap'/>
+      <TextBlock x:Name='timeoutHint' Text='0 mantiene el fondo visible sin límite de tiempo.' Foreground='#A6B6D1' FontSize='14' Margin='0,8,0,23' TextWrapping='Wrap'/>
       <TextBlock Text='Fondo' FontWeight='SemiBold' Margin='0,0,0,9'/>
       <TextBlock x:Name='imageLabel' Foreground='#A6B6D1' TextTrimming='CharacterEllipsis' Margin='0,0,0,10'/>
       <StackPanel Orientation='Horizontal' Margin='0,0,0,24'>
@@ -183,13 +132,28 @@ internal sealed class SettingsWindow : Window
       </StackPanel>
       <CheckBox x:Name='showClock' Content='Mostrar reloj y fecha'/>
       <CheckBox x:Name='simulateActivity' Content='Mantener Windows desbloqueado'/>
-      <TextBlock Text='Mueve el ratón un píxel alternando izquierda y derecha.' Foreground='#A6B6D1' FontSize='14' TextWrapping='Wrap' Margin='0,-5,0,12'/>
+      <TextBlock x:Name='activityHint' Text='Mueve el ratón un píxel alternando izquierda y derecha.' Foreground='#A6B6D1' FontSize='14' TextWrapping='Wrap' Margin='0,-5,0,12'/>
       <StackPanel Orientation='Horizontal' Margin='0,0,0,21'>
         <TextBlock Text='Actividad cada' VerticalAlignment='Center'/><TextBox x:Name='activityInterval' Width='76' MaxLength='3' Margin='12,0'/><TextBlock Text='segundos' VerticalAlignment='Center'/>
       </StackPanel>
       <CheckBox x:Name='keepAwake' Content='Evitar suspensión y apagado por inactividad'/>
       <TextBlock Text='Se aplica únicamente mientras la simulación esté activa.' Foreground='#A6B6D1' FontSize='14' TextWrapping='Wrap' Margin='0,-5,0,20'/>
       <CheckBox x:Name='startup' Content='Iniciar con Windows'/>
+      <Expander Header='Bromas y easter eggs' IsExpanded='True' Foreground='White' Margin='0,10,0,16'>
+        <Border Background='#1A2740' CornerRadius='9' Padding='16' Margin='0,10,0,0'>
+          <StackPanel>
+            <TextBlock Text='Modo de humor' FontWeight='SemiBold' Margin='0,0,0,8'/>
+            <ComboBox x:Name='humorMode' Foreground='#101728' Padding='8,6' MinHeight='40'>
+              <ComboBoxItem Content='Discreto: sin bromas en pantalla'/><ComboBoxItem Content='Sarcasmo suave'/>
+              <ComboBoxItem Content='Mascota y animaciones'/><ComboBoxItem Content='Todos los easter eggs'/>
+            </ComboBox>
+            <CheckBox x:Name='wakeOnInput' Content='Despertar el fondo al pulsar una tecla' Margin='0,16,0,7'/>
+            <TextBlock Text='Lo muestra 4 segundos y vuelve a negro. Las bromas no tienen sonido.' Foreground='#A6B6D1' FontSize='14' TextWrapping='Wrap' Margin='0,0,0,15'/>
+            <TextBlock x:Name='funStats' TextWrapping='Wrap' Margin='0,0,0,7'/>
+            <TextBlock Text='Solo contadores de esta sesión; se reinician con la siguiente simulación.' Foreground='#A6B6D1' FontSize='14' TextWrapping='Wrap'/>
+          </StackPanel>
+        </Border>
+      </Expander>
       <Border Background='#1A2740' CornerRadius='9' Padding='16' Margin='0,10,0,16'>
         <StackPanel>
           <TextBlock Text='Actualizaciones' FontWeight='SemiBold' Margin='0,0,0,7'/>
@@ -222,6 +186,10 @@ internal sealed class SettingsWindow : Window
         activityInterval = (TextBox)root.FindName("activityInterval");
         autoActivate = (CheckBox)root.FindName("autoActivate");
         idleSeconds = (TextBox)root.FindName("idleSeconds");
+        humorMode = (ComboBox)root.FindName("humorMode");
+        wakeOnInput = (CheckBox)root.FindName("wakeOnInput");
+        timeoutHint = (TextBlock)root.FindName("timeoutHint");
+        activityHint = (TextBlock)root.FindName("activityHint");
         imageLabel = (TextBlock)root.FindName("imageLabel");
         error = (TextBlock)root.FindName("error");
         updateStatus = (TextBlock)root.FindName("updateStatus");
@@ -241,10 +209,25 @@ internal sealed class SettingsWindow : Window
         autoActivate.IsChecked = settings.AutoActivate;
         idleSeconds.Text = settings.IdleSeconds.ToString(CultureInfo.InvariantCulture);
         idleSeconds.IsEnabled = settings.AutoActivate;
+        humorMode.SelectedIndex = (int)settings.Humor;
+        wakeOnInput.IsChecked = settings.WakeOnInput;
+        ((TextBlock)root.FindName("funStats")).Text = statistics == null ? "Los logros aparecerán después de una simulación." : statistics.Summary();
         autoActivate.Checked += delegate { idleSeconds.IsEnabled = true; };
         autoActivate.Unchecked += delegate { idleSeconds.IsEnabled = false; };
         simulateActivity.Checked += delegate { activityInterval.IsEnabled = true; };
         simulateActivity.Unchecked += delegate { activityInterval.IsEnabled = false; };
+        timeout.TextChanged += delegate { RefreshFunHints(); };
+        activityInterval.TextChanged += delegate { RefreshFunHints(); };
+        humorMode.SelectionChanged += delegate { RefreshFunHints(); };
+        ((TextBlock)root.FindName("funHeading")).MouseLeftButtonDown += delegate
+        {
+            if (humorMode.SelectedIndex == 0) return;
+            var now = DateTime.UtcNow;
+            titleClicks = now - titleClicked < TimeSpan.FromSeconds(5) ? titleClicks + 1 : 1;
+            titleClicked = now;
+            if (titleClicks >= 7) { ((TextBlock)root.FindName("funHeading")).Text = "Tu pantalla, en pausa. Tú, no."; titleClicks = 0; }
+        };
+        RefreshFunHints();
         UpdateImageLabel();
         ((Button)root.FindName("identify")).Click += delegate { Identify(); };
         ((Button)root.FindName("image")).Click += delegate
@@ -273,6 +256,17 @@ internal sealed class SettingsWindow : Window
         lastCheck.Text = updates == null || updates.LastCheckUtc == DateTime.MinValue
             ? "Comprobación automática cada 12 horas."
             : "Última comprobación: " + updates.LastCheckUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.GetCultureInfo("es-ES"));
+    }
+
+    private void RefreshFunHints()
+    {
+        timeoutHint.Text = "0 mantiene el fondo visible sin límite de tiempo.";
+        activityHint.Text = "Mueve el ratón un píxel alternando izquierda y derecha.";
+        if (humorMode.SelectedIndex == 0) return;
+        if (timeout.Text == "42") timeoutHint.Text = "La respuesta. La pregunta, no la sabemos.";
+        else if (timeout.Text == "86400") timeoutHint.Text = "24 horas. Eso ya es mudarse.";
+        else if (timeout.Text == "0") timeoutHint.Text = "Fondo eterno. Valiente.";
+        if (activityInterval.Text == "15") activityHint.Text = "Eso ya no es actividad, es un tic.";
     }
 
     private void UpdateImageLabel()
@@ -360,7 +354,9 @@ internal sealed class SettingsWindow : Window
                 KeepAwake = keepAwake.IsChecked == true, ShowClock = showClock.IsChecked == true,
                 ImagePath = imagePath ?? "",
                 SimulateActivity = simulateActivity.IsChecked == true, ActivityIntervalSeconds = interval,
-                AutoActivate = autoActivate.IsChecked == true, IdleSeconds = idle
+                AutoActivate = autoActivate.IsChecked == true, IdleSeconds = idle,
+                Humor = humorMode.SelectedIndex >= 0 ? (HumorMode)humorMode.SelectedIndex : HumorMode.Todos,
+                WakeOnInput = wakeOnInput.IsChecked == true
             };
             bool desiredStartup = startup.IsChecked == true;
             if (Startup.Enabled != desiredStartup) Startup.Enabled = desiredStartup;

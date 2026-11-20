@@ -78,6 +78,8 @@ internal static class PackageTests
                 "Actividad periódica y petición de energía habilitadas");
             Check(xml.SelectSingleNode("/AppSettings/AutoActivate").InnerText == "true" && xml.SelectSingleNode("/AppSettings/IdleSeconds").InnerText == "300",
                 "El instalador incluye la activación por inactividad a los 300 segundos");
+            Check(xml.SelectSingleNode("/AppSettings/Humor").InnerText == "Todos" && xml.SelectSingleNode("/AppSettings/WakeOnInput").InnerText == "true",
+                "El instalador incluye todos los easter eggs y el despertar breve");
 
             xml.SelectSingleNode("/AppSettings/TimeoutSeconds").InnerText = "75";
             xml.Save(Path.Combine(target, "ajustes.xml"));
@@ -136,5 +138,6 @@ internal static class PackageTests
             System.Console.WriteLine(ex);
             return 1;
         }
+        finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
     }
 }

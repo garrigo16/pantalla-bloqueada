@@ -1,15 +1,12 @@
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 $build = Join-Path $repo 'build\tests'
-$framework = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319'
-if (-not (Test-Path -LiteralPath (Join-Path $framework 'csc.exe'))) { $framework = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319' }
-$compiler = Join-Path $framework 'csc.exe'
-$references = @('PresentationCore','PresentationFramework','WindowsBase') | ForEach-Object { '/reference:' + (Join-Path $framework ('WPF\' + $_ + '.dll')) }
+. (Join-Path $PSScriptRoot 'Compiler.ps1')
 $app = @(Get-ChildItem -LiteralPath (Join-Path $repo 'src\App') -Filter '*.cs' -File | Select-Object -ExpandProperty FullName)
 $shared = @(Get-ChildItem -LiteralPath (Join-Path $repo 'src\Shared') -Filter '*.cs' -File | Select-Object -ExpandProperty FullName)
 New-Item -ItemType Directory -Path $build -Force | Out-Null
 $packageTests = Join-Path $build 'PackageTests.exe'
-& $compiler /nologo /target:exe /main:PackageTests /codepage:65001 ('/out:' + $packageTests) (Join-Path $repo 'src\Setup\Installation.cs') (Join-Path $repo 'tests\PackageTests.cs')
+& $compiler /nologo /target:exe /main:PackageTests /codepage:65001 ('/out:' + $packageTests) @shared (Join-Path $repo 'src\Setup\Installation.cs') (Join-Path $repo 'tests\PackageTests.cs')
 if ($LASTEXITCODE -ne 0) { throw 'Error al compilar las pruebas del instalador.' }
 & $packageTests (Join-Path $repo 'artifacts\Iniciar.exe') (Join-Path $repo 'build\PantallaBloqueada.exe') (Join-Path $repo 'artifacts\Desinstalar.exe')
 if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas del instalador.' }
@@ -23,3 +20,8 @@ $idleTests = Join-Path $build 'IdleActivationTests.exe'
 if ($LASTEXITCODE -ne 0) { throw 'Error al compilar las pruebas de inactividad.' }
 & $idleTests
 if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas de inactividad.' }
+$funTests = Join-Path $build 'EasterEggTests.exe'
+& $compiler /nologo /target:exe /main:EasterEggTests /codepage:65001 ('/out:' + $funTests) @shared (Join-Path $repo 'src\App\EasterEggEngine.cs') (Join-Path $repo 'tests\EasterEggTests.cs')
+if ($LASTEXITCODE -ne 0) { throw 'Error al compilar las pruebas de easter eggs.' }
+& $funTests
+if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas de easter eggs.' }

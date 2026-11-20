@@ -4,6 +4,11 @@ Abre Iniciar.exe. La aplicación se instala para tu usuario y queda activa.
 No necesita permisos de administrador.
 Desde el icono junto al reloj puedes configurar pantallas, fondo, tiempos e inicio con Windows.
 
+BROMAS
+Todos los easter eggs están activos inicialmente. En Bromas y easter eggs puedes cambiar
+el modo de humor o elegir Discreto. El despertar breve del fondo se puede desactivar aparte.
+Hay guiños al tocar teclas, clicar y completar secuencias escondidas. Sin sonido.
+
 ACTIVACIÓN AUTOMÁTICA
 La simulación se activa inicialmente tras 300 segundos (5 minutos) sin teclado ni ratón.
 El tiempo es editable y se puede desactivar desde el configurador.
