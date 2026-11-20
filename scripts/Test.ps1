@@ -18,3 +18,8 @@ $updateTests = Join-Path $build 'UpdateTests.exe'
 if ($LASTEXITCODE -ne 0) { throw 'Error al compilar las pruebas del actualizador.' }
 & $updateTests
 if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas del actualizador.' }
+$idleTests = Join-Path $build 'IdleActivationTests.exe'
+& $compiler /nologo /target:exe /main:IdleActivationTests /codepage:65001 '/reference:System.Windows.Forms.dll' '/reference:System.Drawing.dll' '/reference:System.Xaml.dll' '/reference:System.Net.Http.dll' '/reference:System.Runtime.Serialization.dll' @references ('/out:' + $idleTests) @shared @app (Join-Path $repo 'tests\IdleActivationTests.cs')
+if ($LASTEXITCODE -ne 0) { throw 'Error al compilar las pruebas de inactividad.' }
+& $idleTests
+if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas de inactividad.' }

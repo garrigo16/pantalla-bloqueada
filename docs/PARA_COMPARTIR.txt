@@ -4,6 +4,11 @@ Abre Iniciar.exe. La aplicación se instala para tu usuario y queda activa.
 No necesita permisos de administrador.
 Desde el icono junto al reloj puedes configurar pantallas, fondo, tiempos e inicio con Windows.
 
+ACTIVACIÓN AUTOMÁTICA
+La simulación se activa inicialmente tras 300 segundos (5 minutos) sin teclado ni ratón.
+El tiempo es editable y se puede desactivar desde el configurador.
+No interrumpe el configurador y la salida manual espera una nueva actividad antes de volver a contar.
+
 ACTUALIZACIONES
 Se comprueban automáticamente cada 12 horas mientras la app está en ejecución.
 En Configurar > Actualizaciones puedes buscar versiones y pulsar Actualizar si hay una nueva.

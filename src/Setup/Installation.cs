@@ -13,7 +13,7 @@ internal interface IInstallHost
 
 internal sealed class PackageInstallation
 {
-    internal const string Defaults = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<AppSettings>\n  <DeviceName />\n  <TimeoutSeconds>20</TimeoutSeconds>\n  <KeepAwake>true</KeepAwake>\n  <ShowClock>true</ShowClock>\n  <ImagePath />\n  <SimulateActivity>true</SimulateActivity>\n  <ActivityIntervalSeconds>300</ActivityIntervalSeconds>\n</AppSettings>\n";
+    internal const string Defaults = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<AppSettings>\n  <DeviceName />\n  <TimeoutSeconds>20</TimeoutSeconds>\n  <KeepAwake>true</KeepAwake>\n  <ShowClock>true</ShowClock>\n  <ImagePath />\n  <SimulateActivity>true</SimulateActivity>\n  <ActivityIntervalSeconds>300</ActivityIntervalSeconds>\n  <AutoActivate>true</AutoActivate>\n  <IdleSeconds>300</IdleSeconds>\n</AppSettings>\n";
     internal readonly string DirectoryPath;
     internal string ExecutablePath { get { return OwnedPath("PantallaBloqueada.exe"); } }
     internal string ExpectedStartup { get { return "\"" + ExecutablePath + "\" --background"; } }

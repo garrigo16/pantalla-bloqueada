@@ -95,6 +95,7 @@ internal sealed class LockController : IDisposable
     private HwndSource source;
     private Forms.NotifyIcon tray;
     private UpdateManager updates;
+    private IdleActivationMonitor idle;
     private Forms.ToolStripMenuItem updateMenu;
     private EventWaitHandle toggleEvent;
     private EventWaitHandle quitEvent;
@@ -106,6 +107,8 @@ internal sealed class LockController : IDisposable
     private bool closing;
     private bool disposed;
     private bool keepingAwake;
+    private bool activating;
+    private bool sessionLocked;
     private AppSettings settings;
     private SettingsWindow configuration;
     private readonly Stopwatch elapsed = new Stopwatch();
@@ -196,6 +199,14 @@ internal sealed class LockController : IDisposable
             SystemEvents.SessionSwitch += SessionChanged;
             UpdatesChanged(this, EventArgs.Empty);
             updates.Start();
+            idle = new IdleActivationMonitor(new SystemIdleInput(), delegate { return settings; },
+                delegate { return !disposed && !closing && !activating && !sessionLocked && windows.Count == 0 && configuration == null && updates.Phase != UpdatePhase.Installing; },
+                delegate
+                {
+                    try { Show(); }
+                    catch { tray.ShowBalloonTip(5000, "Pantalla bloqueada", "No se pudo activar la simulación. Puedes volver a intentarlo manualmente.", Forms.ToolTipIcon.Warning); }
+                });
+            idle.Start();
         }
         catch { Dispose(); throw; }
     }
@@ -225,6 +236,8 @@ internal sealed class LockController : IDisposable
 
     private void Show()
     {
+        if (disposed || activating || windows.Count > 0) return;
+        activating = true;
         try
         {
             if (configuration != null) configuration.Close();
@@ -254,6 +267,7 @@ internal sealed class LockController : IDisposable
             if (settings.TimeoutSeconds > 0) blackout.Start();
         }
         catch { Hide(); throw; }
+        finally { activating = false; }
     }
 
     private void AddWindow(Forms.Screen screen, bool showImage)
@@ -271,8 +285,12 @@ internal sealed class LockController : IDisposable
 
     private void SessionChanged(object sender, SessionSwitchEventArgs e)
     {
-        if (e.Reason == SessionSwitchReason.SessionLock || e.Reason == SessionSwitchReason.SessionLogoff)
-            Dispatch(Hide);
+        if (e.Reason == SessionSwitchReason.SessionLock || e.Reason == SessionSwitchReason.SessionLogoff ||
+            e.Reason == SessionSwitchReason.ConsoleDisconnect || e.Reason == SessionSwitchReason.RemoteDisconnect)
+            Dispatch(delegate { sessionLocked = true; Hide(); });
+        else if (e.Reason == SessionSwitchReason.SessionUnlock || e.Reason == SessionSwitchReason.SessionLogon ||
+            e.Reason == SessionSwitchReason.ConsoleConnect || e.Reason == SessionSwitchReason.RemoteConnect)
+            Dispatch(delegate { sessionLocked = false; if (idle != null) idle.Reset(); });
     }
 
     internal void OpenSettings()
@@ -280,7 +298,7 @@ internal sealed class LockController : IDisposable
         if (windows.Count != 0) return;
         if (configuration != null) { configuration.Activate(); return; }
         configuration = new SettingsWindow(settings, updates);
-        configuration.Saved += delegate(AppSettings updated) { settings = updated; };
+        configuration.Saved += delegate(AppSettings updated) { settings = updated; if (idle != null) idle.Reset(); };
         configuration.Closed += delegate { configuration = null; };
         configuration.Show();
     }
@@ -298,6 +316,7 @@ internal sealed class LockController : IDisposable
     internal void Hide()
     {
         if (closing) return;
+        bool wasShowing = activating || windows.Count > 0;
         closing = true;
         try
         {
@@ -308,7 +327,7 @@ internal sealed class LockController : IDisposable
             foreach (var window in windows) window.Close();
             windows.Clear();
         }
-        finally { closing = false; }
+        finally { closing = false; if (wasShowing && idle != null) idle.DeferUntilActivity(); }
     }
 
     public void Dispose()
@@ -317,6 +336,7 @@ internal sealed class LockController : IDisposable
         disposed = true;
         SystemEvents.DisplaySettingsChanged -= DisplaySettingsChanged;
         SystemEvents.SessionSwitch -= SessionChanged;
+        if (idle != null) idle.Dispose();
         if (updates != null) { updates.Changed -= UpdatesChanged; updates.Dispose(); }
         if (configuration != null) configuration.Close();
         Hide();

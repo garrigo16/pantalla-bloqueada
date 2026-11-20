@@ -14,6 +14,12 @@ Abre el configurador desde el icono del área de notificación. Permite elegir l
 
 Los valores iniciales son una pantalla con fondo durante **20 segundos**, el resto en negro y un movimiento horizontal de **un píxel cada cinco minutos**, alternando sentidos mientras la simulación esté activa. Las pantallas se pintan de negro, sin apagarlas físicamente. La actividad periódica y la petición de energía se detienen al salir de la simulación.
 
+## Activación automática por inactividad
+
+En el configurador, **Activar automáticamente por inactividad** permite elegir cuántos segundos sin teclado ni ratón deben pasar antes de iniciar la simulación. Está activado inicialmente a **300 segundos (5 minutos)** y se puede desactivar con la casilla.
+
+El contador solo actúa mientras la simulación está desactivada. No interrumpe el configurador ni actúa sobre el bloqueo real de Windows. Después de salir manualmente espera a que vuelvas a usar el PC antes de iniciar otro periodo de inactividad, para evitar una reapertura inmediata. El tiempo para pasar el fondo a negro sigue siendo un ajuste independiente.
+
 ## Actualizaciones
 
 - La app busca nuevas versiones estables de este repositorio cada **12 horas** mientras está en ejecución.
@@ -39,7 +45,7 @@ Los instaladores y el ZIP se generan en `artifacts/`. Las pruebas comprueban ver
 ## Publicar una versión
 
 1. Cambia `Current` y `Assembly` en `src/Shared/VersionInfo.cs` y actualiza `docs/RELEASE_NOTES.md`.
-2. Ejecuta **Actions → Publicar versión → Run workflow**, indicando la etiqueta correspondiente, por ejemplo `v1.1.0`. También se puede publicar enviando una etiqueta nueva `v*` a Git.
+2. Al subir el cambio de versión a `main` se publica automáticamente. También puedes ejecutar **Actions → Publicar versión → Run workflow** con la etiqueta correspondiente, por ejemplo `v1.2.0`, o enviar una etiqueta nueva `v*` a Git.
 3. El flujo compila y comprueba los instaladores, prepara un borrador con los archivos y después publica la versión estable. No sobrescribe versiones ya publicadas.
 
 Los ajustes, las imágenes personales, la caché de actualizaciones y los ejecutables generados quedan fuera del repositorio. Los binarios se distribuyen como archivos de las versiones.

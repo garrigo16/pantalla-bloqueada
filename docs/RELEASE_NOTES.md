@@ -1,5 +1,9 @@
-Actualizador integrado con comprobación automática cada 12 horas y búsqueda manual desde el configurador.
+Activación automática tras un número configurable de segundos sin usar teclado ni ratón.
 
-El botón Actualizar se habilita cuando hay una versión nueva. La descarga se verifica con SHA-256 antes de abrir el instalador, y se conservan los ajustes y la preferencia de inicio con Windows.
+- Nueva casilla **Activar automáticamente por inactividad**, inicialmente a **300 segundos (5 minutos)**.
+- Tiempo editable entre 1 y 86400 segundos y opción para desactivar la función.
+- El contador queda en pausa mientras está activa la simulación o está abierto el configurador.
+- Después de salir manualmente espera actividad nueva para evitar una reapertura inmediata.
+- Respeta el bloqueo real de Windows y conserva todos los ajustes anteriores.
 
-Para instalar por primera vez o pasar desde una versión sin actualizador, abre **Iniciar.exe**. Para compartir la app, usa **PantallaBloqueada.zip**.
+Se distribuye mediante el actualizador integrado. También puedes instalarla abriendo **Iniciar.exe** desde esta versión.

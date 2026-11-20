@@ -76,6 +76,8 @@ internal static class PackageTests
                 "Valores iniciales: 20 segundos y 5 minutos");
             Check(xml.SelectSingleNode("/AppSettings/KeepAwake").InnerText == "true" && xml.SelectSingleNode("/AppSettings/SimulateActivity").InnerText == "true",
                 "Actividad periódica y petición de energía habilitadas");
+            Check(xml.SelectSingleNode("/AppSettings/AutoActivate").InnerText == "true" && xml.SelectSingleNode("/AppSettings/IdleSeconds").InnerText == "300",
+                "El instalador incluye la activación por inactividad a los 300 segundos");
 
             xml.SelectSingleNode("/AppSettings/TimeoutSeconds").InnerText = "75";
             xml.Save(Path.Combine(target, "ajustes.xml"));

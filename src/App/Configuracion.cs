@@ -22,6 +22,8 @@ public sealed class AppSettings
     public string ImagePath { get; set; }
     public bool SimulateActivity { get; set; }
     public int ActivityIntervalSeconds { get; set; }
+    public bool AutoActivate { get; set; }
+    public int IdleSeconds { get; set; }
     internal static string FilePath { get { return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ajustes.xml"); } }
 
     public AppSettings()
@@ -33,6 +35,8 @@ public sealed class AppSettings
         ImagePath = "";
         SimulateActivity = true;
         ActivityIntervalSeconds = 300;
+        AutoActivate = true;
+        IdleSeconds = 300;
     }
 
     internal static AppSettings Load()
@@ -44,6 +48,7 @@ public sealed class AppSettings
                 var settings = (AppSettings)new XmlSerializer(typeof(AppSettings)).Deserialize(input);
                 if (settings.TimeoutSeconds < 0 || settings.TimeoutSeconds > 86400) settings.TimeoutSeconds = 20;
                 if (settings.ActivityIntervalSeconds < 15 || settings.ActivityIntervalSeconds > 600) settings.ActivityIntervalSeconds = 300;
+                if (settings.IdleSeconds < 1 || settings.IdleSeconds > 86400) settings.IdleSeconds = 300;
                 return settings;
             }
         }
@@ -109,6 +114,8 @@ internal sealed class SettingsWindow : Window
     private readonly CheckBox startup;
     private readonly CheckBox simulateActivity;
     private readonly TextBox activityInterval;
+    private readonly CheckBox autoActivate;
+    private readonly TextBox idleSeconds;
     private readonly TextBlock imageLabel;
     private readonly TextBlock error;
     private readonly UpdateManager updates;
@@ -159,6 +166,11 @@ internal sealed class SettingsWindow : Window
         <Button x:Name='identify' Grid.Column='1' Content='Identificar' Margin='10,0,0,0'/>
       </Grid>
       <TextBlock Text='Las demás pantallas permanecerán en negro.' Foreground='#A6B6D1' FontSize='14' Margin='0,8,0,23' TextWrapping='Wrap'/>
+      <CheckBox x:Name='autoActivate' Content='Activar automáticamente por inactividad'/>
+      <StackPanel Orientation='Horizontal' Margin='0,0,0,8'>
+        <TextBlock Text='Después de' VerticalAlignment='Center'/><TextBox x:Name='idleSeconds' Width='92' MaxLength='5' Margin='12,0'/><TextBlock Text='segundos sin usar el PC' VerticalAlignment='Center'/>
+      </StackPanel>
+      <TextBlock Text='Cuenta teclado y ratón mientras la simulación está desactivada.' Foreground='#A6B6D1' FontSize='14' Margin='0,0,0,23' TextWrapping='Wrap'/>
       <TextBlock Text='Pasar la pantalla a negro después de' FontWeight='SemiBold' Margin='0,0,0,9'/>
       <StackPanel Orientation='Horizontal'>
         <TextBox x:Name='timeout' Width='92' MaxLength='5'/><TextBlock Text='segundos' Margin='12,0,0,0' VerticalAlignment='Center'/>
@@ -208,6 +220,8 @@ internal sealed class SettingsWindow : Window
         startup = (CheckBox)root.FindName("startup");
         simulateActivity = (CheckBox)root.FindName("simulateActivity");
         activityInterval = (TextBox)root.FindName("activityInterval");
+        autoActivate = (CheckBox)root.FindName("autoActivate");
+        idleSeconds = (TextBox)root.FindName("idleSeconds");
         imageLabel = (TextBlock)root.FindName("imageLabel");
         error = (TextBlock)root.FindName("error");
         updateStatus = (TextBlock)root.FindName("updateStatus");
@@ -224,6 +238,11 @@ internal sealed class SettingsWindow : Window
         simulateActivity.IsChecked = settings.SimulateActivity;
         activityInterval.Text = settings.ActivityIntervalSeconds.ToString(CultureInfo.InvariantCulture);
         activityInterval.IsEnabled = settings.SimulateActivity;
+        autoActivate.IsChecked = settings.AutoActivate;
+        idleSeconds.Text = settings.IdleSeconds.ToString(CultureInfo.InvariantCulture);
+        idleSeconds.IsEnabled = settings.AutoActivate;
+        autoActivate.Checked += delegate { idleSeconds.IsEnabled = true; };
+        autoActivate.Unchecked += delegate { idleSeconds.IsEnabled = false; };
         simulateActivity.Checked += delegate { activityInterval.IsEnabled = true; };
         simulateActivity.Unchecked += delegate { activityInterval.IsEnabled = false; };
         UpdateImageLabel();
@@ -322,6 +341,17 @@ internal sealed class SettingsWindow : Window
             activityInterval.Focus();
             return;
         }
+        int idle;
+        if (!int.TryParse(idleSeconds.Text, out idle) || idle < 1 || idle > 86400)
+        {
+            if (autoActivate.IsChecked == true)
+            {
+                error.Text = "El tiempo de inactividad debe estar entre 1 y 86400 segundos.";
+                idleSeconds.Focus();
+                return;
+            }
+            idle = 300;
+        }
         try
         {
             var settings = new AppSettings
@@ -329,7 +359,8 @@ internal sealed class SettingsWindow : Window
                 DeviceName = selected.Screen.DeviceName, TimeoutSeconds = seconds,
                 KeepAwake = keepAwake.IsChecked == true, ShowClock = showClock.IsChecked == true,
                 ImagePath = imagePath ?? "",
-                SimulateActivity = simulateActivity.IsChecked == true, ActivityIntervalSeconds = interval
+                SimulateActivity = simulateActivity.IsChecked == true, ActivityIntervalSeconds = interval,
+                AutoActivate = autoActivate.IsChecked == true, IdleSeconds = idle
             };
             bool desiredStartup = startup.IsChecked == true;
             if (Startup.Enabled != desiredStartup) Startup.Enabled = desiredStartup;
