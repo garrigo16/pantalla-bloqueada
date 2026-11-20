@@ -158,7 +158,7 @@ internal sealed partial class LockController : IDisposable
 
             tray = new Forms.NotifyIcon
             {
-                Icon = System.Drawing.SystemIcons.Application,
+                Icon = AppIcon.Tray,
                 Text = "Pantalla bloqueada",
                 Visible = true
             };
@@ -383,6 +383,7 @@ internal sealed partial class LockWindow : Window
         preferences = settings;
         HasImage = showImage;
         Title = "Pantalla bloqueada";
+        Icon = AppIcon.Window;
         WindowStartupLocation = WindowStartupLocation.Manual;
         WindowStyle = WindowStyle.None;
         ResizeMode = ResizeMode.NoResize;

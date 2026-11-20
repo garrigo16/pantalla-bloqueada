@@ -93,10 +93,12 @@ internal static class SetupProgram
 
     private static void ShowDone(bool removed, bool updated)
     {
+        using (var icon = Icon.ExtractAssociatedIcon(Assembly.GetExecutingAssembly().Location))
         using (var window = new Form())
         using (var timer = new System.Windows.Forms.Timer { Interval = 4500 })
         {
             window.Text = "Pantalla bloqueada";
+            window.Icon = icon;
             window.ClientSize = new Size(440, 190);
             window.StartPosition = FormStartPosition.CenterScreen;
             window.FormBorderStyle = FormBorderStyle.FixedDialog;

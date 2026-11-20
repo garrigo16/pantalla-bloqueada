@@ -78,6 +78,7 @@ internal sealed class SettingsWindow : Window
     {
         updates = updateManager;
         Title = "Pantalla bloqueada · Configuración";
+        Icon = AppIcon.Window;
         Width = 560;
         Height = 1050;
         MinWidth = 500;

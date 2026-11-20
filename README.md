@@ -1,5 +1,7 @@
 # Pantalla bloqueada
 
+<img src="assets/bao.png" width="96" alt="Bao dormilón, icono de la aplicación">
+
 Mini app para Windows con una simulación visual de pantalla de bloqueo y configuración desde la bandeja del sistema. El equipo sigue desbloqueado: esta app no sustituye el bloqueo de seguridad de Windows.
 
 ## Instalar o compartir
@@ -55,6 +57,8 @@ Los instaladores y el ZIP se generan en `artifacts/`. Las pruebas comprueban ver
 3. El flujo compila y comprueba los instaladores, prepara un borrador con los archivos y después publica la versión estable. No sobrescribe versiones ya publicadas.
 
 Los ajustes, las imágenes personales, la caché de actualizaciones y los ejecutables generados quedan fuera del repositorio. Los binarios se distribuyen como archivos de las versiones.
+
+El icono de bao está en `assets/bao.png`. La compilación genera automáticamente sus nueve tamaños (16–256 píxeles) en `build/Bao.ico`, sin herramientas externas.
 
 ## Retirar la aplicación
 

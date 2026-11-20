@@ -9,14 +9,18 @@ $appSources = @(Get-ChildItem -LiteralPath (Join-Path $repo 'src\App') -Filter '
 $shared = @(Get-ChildItem -LiteralPath (Join-Path $repo 'src\Shared') -Filter '*.cs' -File | Select-Object -ExpandProperty FullName)
 $setup = @(Get-ChildItem -LiteralPath (Join-Path $repo 'src\Setup') -Filter '*.cs' -File | Select-Object -ExpandProperty FullName)
 New-Item -ItemType Directory -Path $build,$OutputDirectory -Force | Out-Null
+$icon = Join-Path $build 'Bao.ico'
+& (Join-Path $PSScriptRoot 'BuildIcon.ps1') -OutputPath $icon
+$iconOption = '/win32icon:' + $icon
+$iconResource = '/resource:' + $icon + ',Bao.ico'
 $appExe = Join-Path $build 'PantallaBloqueada.exe'
-& $compiler /nologo /target:winexe /platform:anycpu /optimize+ /codepage:65001 '/reference:System.Windows.Forms.dll' '/reference:System.Drawing.dll' '/reference:System.Xaml.dll' '/reference:System.Net.Http.dll' '/reference:System.Runtime.Serialization.dll' @references ('/out:' + $appExe) @shared @appSources
+& $compiler /nologo /target:winexe /platform:anycpu /optimize+ /codepage:65001 $iconOption $iconResource '/reference:System.Windows.Forms.dll' '/reference:System.Drawing.dll' '/reference:System.Xaml.dll' '/reference:System.Net.Http.dll' '/reference:System.Runtime.Serialization.dll' @references ('/out:' + $appExe) @shared @appSources
 if ($LASTEXITCODE -ne 0) { throw 'Error al compilar la aplicación.' }
 $remove = Join-Path $OutputDirectory 'Desinstalar.exe'
-& $compiler /nologo /target:winexe /platform:anycpu /optimize+ /codepage:65001 /define:UNINSTALLER '/reference:System.Windows.Forms.dll' '/reference:System.Drawing.dll' ('/out:' + $remove) @shared @setup
+& $compiler /nologo /target:winexe /platform:anycpu /optimize+ /codepage:65001 $iconOption /define:UNINSTALLER '/reference:System.Windows.Forms.dll' '/reference:System.Drawing.dll' ('/out:' + $remove) @shared @setup
 if ($LASTEXITCODE -ne 0) { throw 'Error al compilar el desinstalador.' }
 $start = Join-Path $OutputDirectory 'Iniciar.exe'
-& $compiler /nologo /target:winexe /platform:anycpu /optimize+ /codepage:65001 '/reference:System.Windows.Forms.dll' '/reference:System.Drawing.dll' ('/resource:' + $appExe + ',Application.exe') ('/resource:' + $remove + ',Uninstaller.exe') ('/out:' + $start) @shared @setup
+& $compiler /nologo /target:winexe /platform:anycpu /optimize+ /codepage:65001 $iconOption '/reference:System.Windows.Forms.dll' '/reference:System.Drawing.dll' ('/resource:' + $appExe + ',Application.exe') ('/resource:' + $remove + ',Uninstaller.exe') ('/out:' + $start) @shared @setup
 if ($LASTEXITCODE -ne 0) { throw 'Error al compilar el instalador.' }
 $package = Join-Path $OutputDirectory 'package\PantallaBloqueada'
 New-Item -ItemType Directory -Path $package -Force | Out-Null
