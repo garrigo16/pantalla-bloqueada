@@ -1,0 +1,16 @@
+/artifacts/
+/build/
+/TestResults/
+*.exe
+*.pdb
+*.zip
+*.tmp
+ajustes.xml
+updates.xml
+fondo.jpg
+.vs/
+.idea/
+.claude/
+.codex/
+.env
+.env.*

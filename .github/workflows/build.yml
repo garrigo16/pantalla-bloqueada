@@ -1,0 +1,26 @@
+name: Compilar y comprobar
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Compilar instaladores
+        shell: pwsh
+        run: ./scripts/Build.ps1
+      - name: Comprobar actualizador e instalación
+        shell: pwsh
+        run: ./scripts/Test.ps1
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: PantallaBloqueada
+          path: |
+            artifacts/Iniciar.exe
+            artifacts/Desinstalar.exe
+            artifacts/PantallaBloqueada.zip
+            artifacts/SHA256SUMS.txt

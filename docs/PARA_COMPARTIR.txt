@@ -1,0 +1,17 @@
+PANTALLA BLOQUEADA
+
+Abre Iniciar.exe. La aplicación se instala para tu usuario y queda activa.
+No necesita permisos de administrador.
+Desde el icono junto al reloj puedes configurar pantallas, fondo, tiempos e inicio con Windows.
+
+ACTUALIZACIONES
+Se comprueban automáticamente cada 12 horas mientras la app está en ejecución.
+En Configurar > Actualizaciones puedes buscar versiones y pulsar Actualizar si hay una nueva.
+Si ya tienes la última, la aplicación lo indica. Descargar e instalar requiere pulsar el botón.
+Las actualizaciones conservan tus ajustes y tu preferencia de inicio con Windows.
+
+Los valores iniciales son 20 segundos de fondo y un movimiento de un píxel cada 5 minutos, alternando izquierda y derecha mientras dura la simulación.
+Puedes borrar este paquete tras instalarlo. Para retirar la app, usa Desinstalar.exe.
+
+La app simula un bloqueo visual; no protege los archivos ni sustituye el bloqueo real de Windows.
+Windows 10/11 con .NET Framework 4.8 y teclado español. Los ejecutables no tienen firma digital.

@@ -1,2 +1,53 @@
-# pantalla-bloqueada
-Mini app de Windows con simulación de pantalla de bloqueo, configuración en la bandeja y actualizaciones desde GitHub Releases.
+# Pantalla bloqueada
+
+Mini app para Windows con una simulación visual de pantalla de bloqueo y configuración desde la bandeja del sistema. El equipo sigue desbloqueado: esta app no sustituye el bloqueo de seguridad de Windows.
+
+## Instalar o compartir
+
+Descarga **Iniciar.exe** o **PantallaBloqueada.zip** desde [la última versión](https://github.com/garrigo16/pantalla-bloqueada/releases/latest). Abre el instalador: prepara la app para tu usuario, aplica los valores iniciales y la deja activa. No necesita permisos de administrador. El ZIP también incluye el desinstalador.
+
+Puedes borrar el instalador después. La copia instalada y sus ajustes quedan en `%LOCALAPPDATA%\PantallaBloqueada`.
+
+## Configuración
+
+Abre el configurador desde el icono del área de notificación. Permite elegir la pantalla con el fondo, identificar monitores, cambiar la imagen, mostrar el reloj, ajustar el tiempo antes de pasar a negro y elegir el inicio con Windows. La combinación de teclado para alternar la simulación no aparece en la pantalla simulada.
+
+Los valores iniciales son una pantalla con fondo durante **20 segundos**, el resto en negro y un movimiento horizontal de **un píxel cada cinco minutos**, alternando sentidos mientras la simulación esté activa. Las pantallas se pintan de negro, sin apagarlas físicamente. La actividad periódica y la petición de energía se detienen al salir de la simulación.
+
+## Actualizaciones
+
+- La app busca nuevas versiones estables de este repositorio cada **12 horas** mientras está en ejecución.
+- **Buscar actualizaciones** comprueba inmediatamente e indica si ya está instalada la última versión.
+- Cuando hay una versión nueva, aparece el aviso y se habilita **Actualizar a…**. La instalación requiere pulsar ese botón.
+- La descarga se limita al instalador de este repositorio y se verifica con el SHA-256 publicado por GitHub antes de ejecutarla.
+- Se conservan los ajustes y la preferencia de inicio con Windows. La app se reinicia al terminar.
+- Sin conexión, la búsqueda muestra el error y permite reintentarlo. No requiere una cuenta ni un token de GitHub para los usuarios de la app.
+
+Para pasar desde una copia antigua sin actualizador, abre una vez el instalador de esta versión. Las siguientes actualizaciones se realizan desde la app.
+
+## Compilar y comprobar
+
+Windows 10/11 con .NET Framework 4.8 y PowerShell. Sin paquetes externos.
+
+```powershell
+./scripts/Build.ps1
+./scripts/Test.ps1
+```
+
+Los instaladores y el ZIP se generan en `artifacts/`. Las pruebas comprueban versiones, errores de red, descargas y redirecciones, integridad, estado de búsqueda, conservación de ajustes y recuperación ante fallos de instalación. No simulan actividad de ratón ni crean ventanas de bloqueo durante la integración continua.
+
+## Publicar una versión
+
+1. Cambia `Current` y `Assembly` en `src/Shared/VersionInfo.cs` y actualiza `docs/RELEASE_NOTES.md`.
+2. Ejecuta **Actions → Publicar versión → Run workflow**, indicando la etiqueta correspondiente, por ejemplo `v1.1.0`. También se puede publicar enviando una etiqueta nueva `v*` a Git.
+3. El flujo compila y comprueba los instaladores, prepara un borrador con los archivos y después publica la versión estable. No sobrescribe versiones ya publicadas.
+
+Los ajustes, las imágenes personales, la caché de actualizaciones y los ejecutables generados quedan fuera del repositorio. Los binarios se distribuyen como archivos de las versiones.
+
+## Retirar la aplicación
+
+Ejecuta **Desinstalar.exe** desde el paquete o desde la carpeta instalada. Retira los archivos de la app y su entrada de inicio automático; conserva otros archivos que hayas dejado en esa carpeta.
+
+Los ejecutables no tienen firma digital. Las políticas del equipo pueden limitar su ejecución o la generación de actividad; el programa no cambia esas políticas ni impide un bloqueo manual de Windows.
+
+Autor: Miquel Garrigo.
