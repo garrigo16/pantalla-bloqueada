@@ -13,7 +13,7 @@ internal interface IInstallHost
 internal sealed class PackageInstallation
 {
     internal readonly string DirectoryPath;
-    internal string ExecutablePath { get { return OwnedPath("PantallaBloqueada.exe"); } }
+    internal string ExecutablePath { get { return OwnedPath(AppIdentity.ExecutableName); } }
     internal string ExpectedStartup { get { return "\"" + ExecutablePath + "\" --background"; } }
     private readonly byte[] application;
     private readonly byte[] uninstaller;
@@ -21,7 +21,7 @@ internal sealed class PackageInstallation
     internal PackageInstallation(string directory, byte[] app, byte[] remove)
     {
         DirectoryPath = Path.GetFullPath(directory).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
-        if (!string.Equals(Path.GetFileName(DirectoryPath), "PantallaBloqueada", StringComparison.OrdinalIgnoreCase) ||
+        if (!string.Equals(Path.GetFileName(DirectoryPath), AppIdentity.DirectoryName, StringComparison.OrdinalIgnoreCase) ||
             string.Equals(DirectoryPath, Path.GetPathRoot(DirectoryPath), StringComparison.OrdinalIgnoreCase))
             throw new IOException("La carpeta de instalación no es válida.");
         application = app;
@@ -58,13 +58,14 @@ internal sealed class PackageInstallation
         Directory.CreateDirectory(DirectoryPath);
         try
         {
-            Store("PantallaBloqueada.exe", application, backups);
+            Store(AppIdentity.ExecutableName, application, backups);
+            RemoveLegacyExecutable(backups);
             Store("Desinstalar.exe", uninstaller, backups);
             if (!File.Exists(OwnedPath("ajustes.xml")))
                 Store("ajustes.xml", previousSettingsPath != null && File.Exists(previousSettingsPath)
                     ? File.ReadAllBytes(previousSettingsPath) : AppSettings.DefaultXml(), backups);
             // Actualizar respeta si el usuario había desactivado el inicio automático.
-            bool wasEnabled = previousStartup != null && previousStartup.EndsWith("PantallaBloqueada.exe\" --background", StringComparison.OrdinalIgnoreCase);
+            bool wasEnabled = StartupRegistration.IsAppCommand(previousStartup);
             if (!updating || wasEnabled)
             {
                 host.StartupCommand = ExpectedStartup;
@@ -94,6 +95,14 @@ internal sealed class PackageInstallation
         backups.Add(path, previous);
     }
 
+    private void RemoveLegacyExecutable(IDictionary<string, byte[]> backups)
+    {
+        string path = OwnedPath(AppIdentity.LegacyExecutableName);
+        if (!File.Exists(path)) return;
+        backups.Add(path, File.ReadAllBytes(path));
+        File.Delete(path);
+    }
+
     private static void AtomicWrite(string path, byte[] data)
     {
         string temp = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
@@ -110,8 +119,10 @@ internal sealed class PackageInstallation
     {
         ValidateDirectory();
         if (Directory.Exists(DirectoryPath)) host.StopApplication();
-        if (string.Equals(host.StartupCommand, ExpectedStartup, StringComparison.OrdinalIgnoreCase)) host.StartupCommand = null;
-        foreach (string name in new[] { "PantallaBloqueada.exe", "Desinstalar.exe", "ajustes.xml", "updates.xml" })
+        string legacyStartup = "\"" + OwnedPath(AppIdentity.LegacyExecutableName) + "\" --background";
+        if (string.Equals(host.StartupCommand, ExpectedStartup, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(host.StartupCommand, legacyStartup, StringComparison.OrdinalIgnoreCase)) host.StartupCommand = null;
+        foreach (string name in new[] { AppIdentity.ExecutableName, AppIdentity.LegacyExecutableName, "Desinstalar.exe", "ajustes.xml", "updates.xml" })
         {
             string path = OwnedPath(name);
             if (File.Exists(path)) File.Delete(path);

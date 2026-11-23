@@ -1,4 +1,4 @@
-# Pantalla bloqueada
+# Drifft Analyzer
 
 <img src="assets/bao.png" width="96" alt="Bao dormilón, icono de la aplicación">
 
@@ -6,9 +6,9 @@ Mini app para Windows con una simulación visual de pantalla de bloqueo y config
 
 ## Instalar o compartir
 
-Descarga **Iniciar.exe** o **PantallaBloqueada.zip** desde [la última versión](https://github.com/garrigo16/pantalla-bloqueada/releases/latest). Abre el instalador: prepara la app para tu usuario, aplica los valores iniciales y la deja activa. No necesita permisos de administrador. El ZIP también incluye el desinstalador.
+Descarga **Iniciar.exe** o **DrifftAnalyzer.zip** desde [la última versión](https://github.com/garrigo16/pantalla-bloqueada/releases/latest). Abre el instalador: prepara la app para tu usuario, aplica los valores iniciales y la deja activa. No necesita permisos de administrador. El ZIP también incluye el desinstalador.
 
-Puedes borrar el instalador después. La copia instalada y sus ajustes quedan en `%LOCALAPPDATA%\PantallaBloqueada`.
+Puedes borrar el instalador después. El proceso de Windows se llama `DrifftAnalyzer.exe`. La copia instalada y sus ajustes quedan en `%LOCALAPPDATA%\PantallaBloqueada`; se mantiene esa ubicación interna para conservar la configuración de versiones anteriores.
 
 ## Configuración
 

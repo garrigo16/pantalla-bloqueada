@@ -1,7 +1,7 @@
 using System.Reflection;
 
-[assembly: AssemblyTitle("Pantalla bloqueada")]
-[assembly: AssemblyProduct("Pantalla bloqueada")]
+[assembly: AssemblyTitle(AppIdentity.DisplayName)]
+[assembly: AssemblyProduct(AppIdentity.DisplayName)]
 [assembly: AssemblyCompany("Miquel Garrigo")]
 [assembly: AssemblyCopyright("Copyright © 2026 Miquel Garrigo")]
 [assembly: AssemblyVersion(ProductVersion.Assembly)]
@@ -10,6 +10,6 @@ using System.Reflection;
 
 internal static class ProductVersion
 {
-    internal const string Current = "1.3.1";
-    internal const string Assembly = "1.3.1.0";
+    internal const string Current = "1.4.0";
+    internal const string Assembly = "1.4.0.0";
 }

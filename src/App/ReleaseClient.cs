@@ -111,7 +111,7 @@ internal sealed class GitHubReleaseFeed : IReleaseFeed
         ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
         client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(20) };
         client.MaxResponseContentBufferSize = 1024 * 1024;
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("PantallaBloqueada/" + ProductVersion.Current);
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("DrifftAnalyzer/" + ProductVersion.Current);
         client.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
         client.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
     }
@@ -138,7 +138,7 @@ internal sealed class InstallerDownload : IInstallerDownload
     internal InstallerDownload(HttpMessageHandler handler, string tempRoot)
     {
         client = new HttpClient(handler) { Timeout = TimeSpan.FromMinutes(4) };
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("PantallaBloqueada/" + ProductVersion.Current);
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("DrifftAnalyzer/" + ProductVersion.Current);
         temporaryRoot = Path.GetFullPath(tempRoot);
     }
 
@@ -151,7 +151,7 @@ internal sealed class InstallerDownload : IInstallerDownload
     public async Task<string> DownloadAsync(UpdateRelease release, CancellationToken cancellation)
     {
         release.Validate();
-        string directory = Path.Combine(temporaryRoot, "PantallaBloqueada-Update-" + Guid.NewGuid().ToString("N"));
+        string directory = Path.Combine(temporaryRoot, "DrifftAnalyzer-Update-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
         string file = Path.Combine(directory, ReleaseSource.InstallerName);
         try

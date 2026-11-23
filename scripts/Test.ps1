@@ -8,7 +8,7 @@ New-Item -ItemType Directory -Path $build -Force | Out-Null
 $packageTests = Join-Path $build 'PackageTests.exe'
 & $compiler /nologo /target:exe /main:PackageTests /codepage:65001 ('/out:' + $packageTests) @shared (Join-Path $repo 'src\Setup\Installation.cs') (Join-Path $repo 'tests\PackageTests.cs')
 if ($LASTEXITCODE -ne 0) { throw 'Error al compilar las pruebas del instalador.' }
-& $packageTests (Join-Path $repo 'artifacts\Iniciar.exe') (Join-Path $repo 'build\PantallaBloqueada.exe') (Join-Path $repo 'artifacts\Desinstalar.exe')
+& $packageTests (Join-Path $repo 'artifacts\Iniciar.exe') (Join-Path $repo 'build\DrifftAnalyzer.exe') (Join-Path $repo 'artifacts\Desinstalar.exe')
 if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas del instalador.' }
 $updateTests = Join-Path $build 'UpdateTests.exe'
 & $compiler /nologo /target:exe /main:UpdateTests /codepage:65001 '/reference:System.Windows.Forms.dll' '/reference:System.Drawing.dll' '/reference:System.Xaml.dll' '/reference:System.Net.Http.dll' '/reference:System.Runtime.Serialization.dll' @references ('/out:' + $updateTests) @shared @app (Join-Path $repo 'tests\UpdateTests.cs')

@@ -59,7 +59,7 @@ internal static class Program
         catch (Exception ex)
         {
             MessageBox.Show("No se pudo activar la aplicación.\n\n" + ex.Message,
-                "Pantalla bloqueada", MessageBoxButton.OK, MessageBoxImage.Information);
+                AppIdentity.DisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
             return 1;
         }
         finally
@@ -130,7 +130,7 @@ internal sealed partial class LockController : IDisposable
         InitializeFun();
         try
         {
-            var parameters = new HwndSourceParameters("PantallaBloqueada.Controller");
+            var parameters = new HwndSourceParameters("DrifftAnalyzer.Controller");
             parameters.ParentWindow = new IntPtr(-3);
             source = new HwndSource(parameters);
             source.AddHook(WindowMessage);
@@ -159,7 +159,7 @@ internal sealed partial class LockController : IDisposable
             tray = new Forms.NotifyIcon
             {
                 Icon = AppIcon.Tray,
-                Text = "Pantalla bloqueada",
+                Text = AppIdentity.DisplayName,
                 Visible = true
             };
             var menu = new Forms.ContextMenuStrip();
@@ -195,7 +195,7 @@ internal sealed partial class LockController : IDisposable
                 {
                     LastActivityError = ex.Message;
                     Hide();
-                    tray.ShowBalloonTip(5000, "Pantalla bloqueada", ex.Message, Forms.ToolTipIcon.Warning);
+                    tray.ShowBalloonTip(5000, AppIdentity.DisplayName, ex.Message, Forms.ToolTipIcon.Warning);
                 }
             };
             SystemEvents.DisplaySettingsChanged += DisplaySettingsChanged;
@@ -207,7 +207,7 @@ internal sealed partial class LockController : IDisposable
                 delegate
                 {
                     try { Show(); }
-                    catch { tray.ShowBalloonTip(5000, "Pantalla bloqueada", "No se pudo activar la simulación. Puedes volver a intentarlo manualmente.", Forms.ToolTipIcon.Warning); }
+                    catch { tray.ShowBalloonTip(5000, AppIdentity.DisplayName, "No se pudo activar la simulación. Puedes volver a intentarlo manualmente.", Forms.ToolTipIcon.Warning); }
                 });
             idle.Start();
         }
@@ -315,7 +315,7 @@ internal sealed partial class LockController : IDisposable
     private void UpdatesChanged(object sender, EventArgs e)
     {
         if (updates == null || tray == null) return;
-        string text = "Pantalla bloqueada · " + ProductVersion.Current;
+        string text = AppIdentity.DisplayName + " · " + ProductVersion.Current;
         if (updates.Available != null) text += " · actualización " + updates.Available.Version;
         tray.Text = text.Length > 63 ? text.Substring(0, 63) : text;
         updateMenu.Text = updates.Available == null ? "Buscar actualizaciones" : "Actualización disponible: " + updates.Available.Version;
@@ -382,7 +382,7 @@ internal sealed partial class LockWindow : Window
         Screen = screen;
         preferences = settings;
         HasImage = showImage;
-        Title = "Pantalla bloqueada";
+        Title = AppIdentity.DisplayName;
         Icon = AppIcon.Window;
         WindowStartupLocation = WindowStartupLocation.Manual;
         WindowStyle = WindowStyle.None;

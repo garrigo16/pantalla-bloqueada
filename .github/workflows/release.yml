@@ -42,7 +42,7 @@ jobs:
         run: |
           gh release view $env:RELEASE_TAG --json isDraft 1>$null 2>$null
           if ($LASTEXITCODE -eq 0) { throw 'Esa versión ya existe. Usa una versión nueva para publicar cambios.' }
-          gh release create $env:RELEASE_TAG ./artifacts/Iniciar.exe ./artifacts/Desinstalar.exe ./artifacts/PantallaBloqueada.zip ./artifacts/SHA256SUMS.txt --draft --target $env:GITHUB_SHA --title "Pantalla bloqueada $env:RELEASE_TAG" --notes-file ./docs/RELEASE_NOTES.md
+          gh release create $env:RELEASE_TAG ./artifacts/Iniciar.exe ./artifacts/Desinstalar.exe ./artifacts/DrifftAnalyzer.zip ./artifacts/SHA256SUMS.txt --draft --target $env:GITHUB_SHA --title "Drifft Analyzer $env:RELEASE_TAG" --notes-file ./docs/RELEASE_NOTES.md
           if ($LASTEXITCODE -ne 0) { throw 'No se pudo preparar la versión.' }
           gh release edit $env:RELEASE_TAG --draft=false --latest
           if ($LASTEXITCODE -ne 0) { throw 'La versión sigue como borrador; revisa los instaladores antes de publicarla.' }

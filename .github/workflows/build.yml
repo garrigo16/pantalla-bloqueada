@@ -18,9 +18,9 @@ jobs:
         run: ./scripts/Test.ps1
       - uses: actions/upload-artifact@v7.0.2
         with:
-          name: PantallaBloqueada
+          name: DrifftAnalyzer
           path: |
             artifacts/Iniciar.exe
             artifacts/Desinstalar.exe
-            artifacts/PantallaBloqueada.zip
+            artifacts/DrifftAnalyzer.zip
             artifacts/SHA256SUMS.txt

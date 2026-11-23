@@ -1,4 +1,4 @@
-PANTALLA BLOQUEADA
+DRIFFT ANALYZER
 
 Abre Iniciar.exe. La aplicación se instala para tu usuario y queda activa.
 No necesita permisos de administrador.

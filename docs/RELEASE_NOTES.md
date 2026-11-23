@@ -1,8 +1,9 @@
-Nuevo icono de bao japonés dormilón.
+La aplicación pasa a llamarse Drifft Analyzer.
 
-- Diseño propio con fondo transparente en la bandeja del sistema, configurador y ventanas.
-- El instalador, desinstalador y aplicación muestran el mismo bao en Windows.
-- Nueve tamaños entre 16 y 256 píxeles para conservar la nitidez con distintas escalas de pantalla.
-- El icono se genera durante la compilación desde el diseño incluido en el repositorio.
+- Nuevo nombre en la bandeja, ventanas, avisos, instalador y descripción de Windows.
+- Ejecutable DrifftAnalyzer.exe e inicio automático con el nombre Drifft Analyzer.
+- Al actualizar se retira el ejecutable anterior y se conservan todos los ajustes y la elección de inicio automático.
+- Si la migración falla se recuperan los archivos y el inicio anteriores.
+- Paquete para compartir DrifftAnalyzer.zip. El icono de bao y todos los easter eggs se mantienen.
 
-Conserva todos los easter eggs, la activación por inactividad, las actualizaciones y tus ajustes.
+El actualizador de las versiones anteriores sigue funcionando con la misma dirección del repositorio y el mismo Iniciar.exe.

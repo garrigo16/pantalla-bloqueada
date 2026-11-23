@@ -43,7 +43,7 @@ internal static class SetupProgram
         try
         {
             Application.EnableVisualStyles();
-            string appDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PantallaBloqueada");
+            string appDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), AppIdentity.DirectoryName);
             if (worker)
             {
                 int parentId;
@@ -59,7 +59,7 @@ internal static class SetupProgram
             if (uninstall && string.Equals(Path.GetDirectoryName(self), appDirectory, StringComparison.OrdinalIgnoreCase))
             {
                 // El ayudante temporal permite retirar también el desinstalador instalado.
-                string helper = Path.Combine(Path.GetTempPath(), "PantallaBloqueada-Desinstalar-" + Guid.NewGuid().ToString("N") + ".exe");
+                string helper = Path.Combine(Path.GetTempPath(), "DrifftAnalyzer-Desinstalar-" + Guid.NewGuid().ToString("N") + ".exe");
                 File.Copy(self, helper, false);
                 Process.Start(new ProcessStartInfo(helper, "--uninstall-worker " + Process.GetCurrentProcess().Id + (silent ? " --silent" : ""))
                     { UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden });
@@ -77,7 +77,7 @@ internal static class SetupProgram
         catch (Exception ex)
         {
             if (!silent) MessageBox.Show("No se pudo completar la operación.\n\n" + ex.Message,
-                "Pantalla bloqueada", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                AppIdentity.DisplayName, MessageBoxButtons.OK, MessageBoxIcon.Information);
             return 1;
         }
     }
@@ -97,7 +97,7 @@ internal static class SetupProgram
         using (var window = new Form())
         using (var timer = new System.Windows.Forms.Timer { Interval = 4500 })
         {
-            window.Text = "Pantalla bloqueada";
+            window.Text = AppIdentity.DisplayName;
             window.Icon = icon;
             window.ClientSize = new Size(440, 190);
             window.StartPosition = FormStartPosition.CenterScreen;
@@ -128,17 +128,12 @@ internal static class SetupProgram
 
 internal sealed class WindowsInstallHost : IInstallHost
 {
-    private const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
     public string StartupCommand
     {
-        get { using (var key = Registry.CurrentUser.OpenSubKey(RunKey)) return key == null ? null : key.GetValue("PantallaBloqueada") as string; }
+        get { using (var key = Registry.CurrentUser.OpenSubKey(StartupRegistration.KeyPath)) return StartupRegistration.Read(key); }
         set
         {
-            using (var key = Registry.CurrentUser.CreateSubKey(RunKey))
-            {
-                if (value == null) key.DeleteValue("PantallaBloqueada", false);
-                else key.SetValue("PantallaBloqueada", value, RegistryValueKind.String);
-            }
+            using (var key = Registry.CurrentUser.CreateSubKey(StartupRegistration.KeyPath)) StartupRegistration.Write(key, value);
         }
     }
 

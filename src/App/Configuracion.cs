@@ -14,23 +14,22 @@ using Forms = System.Windows.Forms;
 // Autor: Miquel Garrigo
 internal static class Startup
 {
-    private const string KeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
     private static string Command { get { return "\"" + Assembly.GetExecutingAssembly().Location + "\" --background"; } }
 
     internal static bool Enabled
     {
         get
         {
-            using (var key = Registry.CurrentUser.OpenSubKey(KeyPath))
-                return key != null && string.Equals(key.GetValue("PantallaBloqueada") as string, Command, StringComparison.OrdinalIgnoreCase);
+            using (var key = Registry.CurrentUser.OpenSubKey(StartupRegistration.KeyPath))
+                return string.Equals(StartupRegistration.Read(key), Command, StringComparison.OrdinalIgnoreCase);
         }
         set
         {
-            using (var key = Registry.CurrentUser.CreateSubKey(KeyPath))
+            using (var key = Registry.CurrentUser.CreateSubKey(StartupRegistration.KeyPath))
             {
-                if (value) key.SetValue("PantallaBloqueada", Command, RegistryValueKind.String);
-                else if (string.Equals(key.GetValue("PantallaBloqueada") as string, Command, StringComparison.OrdinalIgnoreCase))
-                    key.DeleteValue("PantallaBloqueada", false);
+                if (value) StartupRegistration.Write(key, Command);
+                else if (string.Equals(StartupRegistration.Read(key), Command, StringComparison.OrdinalIgnoreCase))
+                    StartupRegistration.Write(key, null);
             }
         }
     }
@@ -77,7 +76,7 @@ internal sealed class SettingsWindow : Window
     internal SettingsWindow(AppSettings settings, UpdateManager updateManager = null, FunStats statistics = null)
     {
         updates = updateManager;
-        Title = "Pantalla bloqueada · Configuración";
+        Title = AppIdentity.DisplayName + " · Configuración";
         Icon = AppIcon.Window;
         Width = 560;
         Height = 1050;

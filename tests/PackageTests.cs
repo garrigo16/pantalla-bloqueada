@@ -61,10 +61,15 @@ internal static class PackageTests
             byte[] remove = Resource(assembly, "Uninstaller.exe");
             Check(Digest(app) == Digest(File.ReadAllBytes(args[1])), "El instalador contiene exactamente la app verificada");
             Check(Digest(remove) == Digest(File.ReadAllBytes(args[2])), "El desinstalador está incluido en el instalador");
+            var appAssembly = Assembly.LoadFile(Path.GetFullPath(args[1]));
+            Check(((AssemblyProductAttribute)Attribute.GetCustomAttribute(appAssembly, typeof(AssemblyProductAttribute))).Product == "Drifft Analyzer" &&
+                ((AssemblyTitleAttribute)Attribute.GetCustomAttribute(appAssembly, typeof(AssemblyTitleAttribute))).Title == "Drifft Analyzer",
+                "Windows muestra Drifft Analyzer como producto y descripción");
             string target = Path.Combine(root, "Perfil con espacios y acentos á", "PantallaBloqueada");
             var install = new PackageInstallation(target, app, remove);
             var host = new TestInstallHost();
             install.Install(host);
+            Check(Path.GetFileName(install.ExecutablePath) == "DrifftAnalyzer.exe", "El proceso utiliza el ejecutable DrifftAnalyzer.exe");
             Check(Digest(File.ReadAllBytes(install.ExecutablePath)) == Digest(app), "Instalación en una ruta de otro usuario con espacios y acentos");
             Check(host.Value == "\"" + install.ExecutablePath + "\" --background", "Inicio automático usa la ruta local del destinatario, entre comillas");
             Check(host.Starts == 1 && host.Stops == 1 && host.Started == install.ExecutablePath, "Inicio de la copia instalada tras preparar archivos y configuración");
@@ -125,6 +130,37 @@ internal static class PackageTests
             File.WriteAllText(Path.Combine(migrated, "updates.xml"), "caché de prueba");
             migration.Uninstall(disabledStartup);
             Check(!Directory.Exists(migrated), "Desinstalar también retira la caché del actualizador");
+
+            string renamedDirectory = Path.Combine(root, "cambiar nombre", "PantallaBloqueada");
+            Directory.CreateDirectory(renamedDirectory);
+            string legacyExecutable = Path.Combine(renamedDirectory, "PantallaBloqueada.exe");
+            string legacyCommand = "\"" + legacyExecutable + "\" --background";
+            File.WriteAllBytes(legacyExecutable, previousBinary);
+            File.WriteAllBytes(Path.Combine(renamedDirectory, "ajustes.xml"), customSettings);
+            var renamed = new PackageInstallation(renamedDirectory, app, remove);
+            var renameHost = new TestInstallHost { Value = legacyCommand };
+            renamed.Install(renameHost, true);
+            Check(!File.Exists(legacyExecutable) && File.Exists(renamed.ExecutablePath) && renameHost.Value == renamed.ExpectedStartup,
+                "Migrar una copia antigua retira el ejecutable anterior y actualiza el inicio automático");
+            Check(Digest(File.ReadAllBytes(Path.Combine(renamedDirectory, "ajustes.xml"))) == Digest(customSettings), "Cambiar el nombre conserva los ajustes byte por byte");
+            renamed.Install(renameHost, true);
+            Check(renameHost.Value == renamed.ExpectedStartup, "Una actualización posterior reconoce el nuevo nombre del ejecutable");
+            renamed.Uninstall(renameHost);
+            Check(!Directory.Exists(renamedDirectory) && renameHost.Value == null, "Desinstalar la copia renombrada retira sus archivos e inicio automático");
+
+            Directory.CreateDirectory(renamedDirectory);
+            File.WriteAllBytes(legacyExecutable, previousBinary);
+            File.WriteAllBytes(Path.Combine(renamedDirectory, "ajustes.xml"), customSettings);
+            renameHost.Value = legacyCommand; renameHost.FailLaunch = true;
+            try { renamed.Install(renameHost, true); throw new Exception("Debía fallar el inicio nuevo."); } catch (IOException) { }
+            Check(File.Exists(legacyExecutable) && !File.Exists(renamed.ExecutablePath) && Digest(File.ReadAllBytes(legacyExecutable)) == Digest(previousBinary) && renameHost.Value == legacyCommand,
+                "Si falla la migración recupera el ejecutable y el inicio anteriores");
+            renamed.Uninstall(renameHost);
+            Check(!Directory.Exists(renamedDirectory) && renameHost.Value == null, "El desinstalador nuevo también puede retirar una instalación con el nombre antiguo");
+            Check(!StartupRegistration.IsAppCommand("\"C:\\Tools\\OtraDrifftAnalyzer.exe\" --background") &&
+                !StartupRegistration.IsAppCommand("\"C:\\Tools\\DrifftAnalyzer.exe\" --otro") &&
+                StartupRegistration.IsAppCommand("\"C:\\Perfil con espacios\\DrifftAnalyzer.exe\" --background"),
+                "Reconoce solo los nombres y argumentos propios en el inicio automático");
             try { new PackageInstallation(Path.GetPathRoot(root), app, remove); throw new Exception("Debía rechazar la raíz."); }
             catch (IOException) { results.Add("OK Rechaza instalar o borrar en la raíz de una unidad"); }
             File.WriteAllLines(report, results);
