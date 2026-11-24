@@ -71,11 +71,15 @@ internal sealed class SettingsWindow : Window
     private readonly TextBlock lastCheck;
     private readonly Button searchUpdate;
     private readonly Button installUpdate;
+    private readonly ShortcutOptions shortcutOptions;
+    private readonly Expander shortcutExpander;
+    private readonly Action<AppSettings, bool> savePreferences;
     private string imagePath;
 
-    internal SettingsWindow(AppSettings settings, UpdateManager updateManager = null, FunStats statistics = null)
+    internal SettingsWindow(AppSettings settings, UpdateManager updateManager = null, FunStats statistics = null, Action<AppSettings, bool> saveSettings = null)
     {
         updates = updateManager;
+        savePreferences = saveSettings;
         Title = AppIdentity.DisplayName + " · Configuración";
         Icon = AppIcon.Window;
         Width = 560;
@@ -115,6 +119,9 @@ internal sealed class SettingsWindow : Window
         <Button x:Name='identify' Grid.Column='1' Content='Identificar' Margin='10,0,0,0'/>
       </Grid>
       <TextBlock Text='Las demás pantallas permanecerán en negro.' Foreground='#A6B6D1' FontSize='14' Margin='0,8,0,23' TextWrapping='Wrap'/>
+      <Expander x:Name='shortcutExpander' Header='Atajos de teclado' IsExpanded='False' Foreground='White' Margin='0,0,0,23'>
+        <Border Background='#1A2740' CornerRadius='9' Padding='16' Margin='0,10,0,0'><ContentControl x:Name='shortcuts'/></Border>
+      </Expander>
       <CheckBox x:Name='autoActivate' Content='Activar automáticamente por inactividad'/>
       <StackPanel Orientation='Horizontal' Margin='0,0,0,8'>
         <TextBlock Text='Después de' VerticalAlignment='Center'/><TextBox x:Name='idleSeconds' Width='92' MaxLength='5' Margin='12,0'/><TextBlock Text='segundos sin usar el PC' VerticalAlignment='Center'/>
@@ -177,6 +184,9 @@ internal sealed class SettingsWindow : Window
   </Border>
 </Grid>");
         var root = (Grid)Content;
+        shortcutExpander = (Expander)root.FindName("shortcutExpander");
+        shortcutOptions = new ShortcutOptions(settings);
+        ((ContentControl)root.FindName("shortcuts")).Content = shortcutOptions;
         displays = (ComboBox)root.FindName("displays");
         timeout = (TextBox)root.FindName("timeout");
         keepAwake = (CheckBox)root.FindName("keepAwake");
@@ -256,6 +266,13 @@ internal sealed class SettingsWindow : Window
         lastCheck.Text = updates == null || updates.LastCheckUtc == DateTime.MinValue
             ? "Comprobación automática cada 12 horas."
             : "Última comprobación: " + updates.LastCheckUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm", CultureInfo.GetCultureInfo("es-ES"));
+    }
+
+    internal void ShowShortcutError(string message)
+    {
+        shortcutExpander.IsExpanded = true;
+        shortcutOptions.ShowError(message);
+        shortcutExpander.BringIntoView();
     }
 
     private void RefreshFunHints()
@@ -359,11 +376,17 @@ internal sealed class SettingsWindow : Window
                 WakeOnInput = wakeOnInput.IsChecked == true
             };
             bool desiredStartup = startup.IsChecked == true;
-            if (Startup.Enabled != desiredStartup) Startup.Enabled = desiredStartup;
-            settings.Save();
+            shortcutOptions.ApplyTo(settings);
+            if (savePreferences != null) savePreferences(settings, desiredStartup);
+            else
+            {
+                if (Startup.Enabled != desiredStartup) Startup.Enabled = desiredStartup;
+                settings.Save();
+            }
             if (Saved != null) Saved(settings);
             Close();
         }
-        catch (Exception ex) { error.Text = "No se pudo guardar. " + ex.Message; }
+        catch (ShortcutException ex) { ShowShortcutError(ex.Message); }
+        catch (Exception ex) { error.Text = "No se pudo guardar. " + ex.Message; error.BringIntoView(); }
     }
 }

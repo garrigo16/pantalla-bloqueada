@@ -23,6 +23,7 @@ Disponibles con el modo **Todos los easter eggs**. Ninguno revela la combinació
 | Tiempo a negro 0, 42 o 86400; intervalo de actividad 15 | Cambia el texto de ayuda del configurador. |
 | Siete clics rápidos en el título del configurador | «Tu pantalla, en pausa. Tú, no». |
 | Terminar instalación o desinstalación | Una despedida con guasa. |
+| Atajo de salida + Shift | El rincón del gato: pinball de booknook con lluvia animada y parpadeos. |
 
 El despertar de cuatro segundos se controla aparte. Los demás monitores permanecen negros. Mantener una tecla pulsada y las combinaciones con Windows, Ctrl o Alt no cuentan como intentos. Las reacciones ordinarias tienen un enfriamiento; completar una secuencia o alcanzar un nivel de aporreo tiene prioridad.
 

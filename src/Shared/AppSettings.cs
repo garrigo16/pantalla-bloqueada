@@ -18,6 +18,11 @@ public sealed class AppSettings
     public int IdleSeconds { get; set; }
     public HumorMode Humor { get; set; }
     public bool WakeOnInput { get; set; }
+    public int ActivateModifiers { get; set; }
+    public int ActivateKey { get; set; }
+    public bool SameHotkey { get; set; }
+    public int UnlockModifiers { get; set; }
+    public int UnlockKey { get; set; }
     internal static string FilePath { get { return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ajustes.xml"); } }
 
     public AppSettings()
@@ -33,6 +38,9 @@ public sealed class AppSettings
         IdleSeconds = 300;
         Humor = HumorMode.Todos;
         WakeOnInput = true;
+        ActivateModifiers = UnlockModifiers = 8;
+        ActivateKey = UnlockKey = 0;
+        SameHotkey = true;
     }
 
     internal static AppSettings Load()
@@ -46,6 +54,8 @@ public sealed class AppSettings
                 if (settings.ActivityIntervalSeconds < 15 || settings.ActivityIntervalSeconds > 600) settings.ActivityIntervalSeconds = 300;
                 if (settings.IdleSeconds < 1 || settings.IdleSeconds > 86400) settings.IdleSeconds = 300;
                 if (!Enum.IsDefined(typeof(HumorMode), settings.Humor)) settings.Humor = HumorMode.Todos;
+                if (new HotkeySpec(settings.ActivateModifiers, settings.ActivateKey).Error != null) { settings.ActivateModifiers = 8; settings.ActivateKey = 0; }
+                if (new HotkeySpec(settings.UnlockModifiers, settings.UnlockKey).Error != null) { settings.UnlockModifiers = 8; settings.UnlockKey = 0; }
                 return settings;
             }
         }

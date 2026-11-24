@@ -24,4 +24,10 @@ Los valores iniciales son 20 segundos de fondo y un movimiento de un píxel cada
 Puedes borrar este paquete tras instalarlo. Para retirar la app, usa Desinstalar.exe.
 
 La app simula un bloqueo visual; no protege los archivos ni sustituye el bloqueo real de Windows.
-Windows 10/11 con .NET Framework 4.8 y teclado español. Los ejecutables no tienen firma digital.
+Windows 10/11 con .NET Framework 4.8. Los ejecutables no tienen firma digital.
+
+ATAJOS Y PINBALL
+En Configurar > Atajos de teclado puedes elegir una combinación compartida o dos distintas.
+Para el juego, añade Shift al atajo de salida (Shift queda reservado para esa función).
+Ctrl izquierdo/derecho: palancas. Espacio: lanzar. P: pausa. Esc: volver a la simulación.
+El atajo de salida sigue funcionando durante la partida.

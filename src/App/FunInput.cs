@@ -34,8 +34,11 @@ internal sealed partial class LockController
     }
     private void FunKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.IsRepeat || Modifier(e.Key) || CommandModifier()) return;
         var target = FunWindow(); if (target == null) return;
+        if (target.HasPinball && (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl))
+        { target.PinballInput(e.Key, true, e.IsRepeat); e.Handled = true; return; }
+        if (e.IsRepeat || Modifier(e.Key) || CommandModifier()) return;
+        if (target.HasPinball) { target.PinballInput(e.Key, true, false); e.Handled = true; return; }
         if (settings.WakeOnInput) target.Peek();
         target.React(fun.Key(Translate(e.Key), false, false), null);
         if (e.Key == Key.Escape || e.Key == Key.Enter || e.Key == Key.Space || e.Key == Key.F1) e.Handled = true;
@@ -43,18 +46,21 @@ internal sealed partial class LockController
     private void FunTextInput(object sender, TextCompositionEventArgs e)
     {
         if (CommandModifier()) return;
-        var target = FunWindow(); if (target != null) target.React(fun.Text(e.Text, false), null);
+        var target = FunWindow();
+        if (target != null && target.HasPinball) { e.Handled = true; return; }
+        if (target != null) target.React(fun.Text(e.Text, false), null);
     }
     private void FunMouseDown(object sender, MouseButtonEventArgs e)
     {
         if (CommandModifier()) return;
         var target = FunWindow(); if (target == null) return;
+        if (target.HasPinball) return;
         var source = (LockWindow)sender;
         target.React(fun.Click(e.ClickCount, source.HitTarget(e.GetPosition(source))), null);
     }
     private void FunMouseMove(object sender, MouseEventArgs e)
     {
-        var target = FunWindow(); if (target == null || CommandModifier()) return;
+        var target = FunWindow(); if (target == null || target.HasPinball || CommandModifier()) return;
         try
         {
             var source = (LockWindow)sender;
@@ -75,6 +81,7 @@ internal sealed partial class LockWindow
     private bool darkened;
     private readonly DispatcherTimer peekTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(4) };
     internal event EventHandler<KeyEventArgs> KeyPressed;
+    internal event EventHandler<KeyEventArgs> KeyReleased;
     internal event EventHandler<TextCompositionEventArgs> TextEntered;
     internal event EventHandler<MouseButtonEventArgs> MousePressed;
     internal event EventHandler<MouseEventArgs> PointerMoved;
@@ -83,16 +90,18 @@ internal sealed partial class LockWindow
     {
         funOverlay = new FunOverlay(Surface, timePanelElement);
         PreviewKeyDown += delegate(object sender, KeyEventArgs e) { if (KeyPressed != null) KeyPressed(this, e); };
+        PreviewKeyUp += delegate(object sender, KeyEventArgs e) { if (KeyReleased != null) KeyReleased(this, e); };
         PreviewTextInput += delegate(object sender, TextCompositionEventArgs e) { if (TextEntered != null) TextEntered(this, e); };
         MouseDown += delegate(object sender, MouseButtonEventArgs e) { if (MousePressed != null) MousePressed(this, e); };
         MouseMove += delegate(object sender, MouseEventArgs e) { if (PointerMoved != null) PointerMoved(this, e); };
+        Deactivated += delegate { if (pinball != null) pinball.ReleaseControls(); };
         peekTimer.Tick += delegate
         {
             peekTimer.Stop();
             if (darkened && imageLayer != null) { imageLayer.Visibility = Visibility.Collapsed; if (timer != null) timer.Stop(); }
         };
     }
-    internal void React(FunReaction reaction, Point? pointer) { if (funOverlay != null) funOverlay.Show(reaction, pointer); }
+    internal void React(FunReaction reaction, Point? pointer) { if (funOverlay != null && pinball == null) funOverlay.Show(reaction, pointer); }
     internal void Peek()
     {
         if (!darkened || imageLayer == null) return;
@@ -111,5 +120,9 @@ internal sealed partial class LockWindow
         try { return element.TransformToAncestor(this).TransformBounds(new Rect(0, 0, element.ActualWidth, element.ActualHeight)).Contains(point); }
         catch (InvalidOperationException) { return false; }
     }
-    private void DisposeFunWindow() { peekTimer.Stop(); if (funOverlay != null) funOverlay.Dispose(); }
+    private void DisposeFunWindow()
+    {
+        peekTimer.Stop(); if (funOverlay != null) funOverlay.Dispose();
+        if (pinball != null) { pinball.Dispose(); pinball = null; }
+    }
 }

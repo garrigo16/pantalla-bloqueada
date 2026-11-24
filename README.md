@@ -16,6 +16,14 @@ Abre el configurador desde el icono del área de notificación. Permite elegir l
 
 Los valores iniciales son una pantalla con fondo durante **20 segundos**, el resto en negro y un movimiento horizontal de **un píxel cada cinco minutos**, alternando sentidos mientras la simulación esté activa. Las pantallas se pintan de negro, sin apagarlas físicamente. La actividad periódica y la petición de energía se detienen al salir de la simulación.
 
+## Atajos de teclado
+
+En **Configurar → Atajos de teclado** puedes elegir una combinación compartida para activar y salir, o una distinta para cada acción. Los cambios se aplican al guardar, sin reiniciar. Se mantiene el atajo inicial en instalaciones anteriores. Si una reserva está ocupada o falla el guardado, continúan funcionando los atajos anteriores.
+
+El **pinball** se abre añadiendo **Shift al atajo de salida**. Shift queda reservado para esa función; la combinación de activación independiente puede utilizarlo si no coincide con la del juego. Ninguna combinación de salida se muestra en las pantallas simuladas.
+
+Si el teclado no tiene Ñ o una combinación no se puede registrar al arrancar, la app abre el configurador para elegir otra y mantiene desactivada la simulación hasta disponer de los atajos.
+
 ## Activación automática por inactividad
 
 En el configurador, **Activar automáticamente por inactividad** permite elegir cuántos segundos sin teclado ni ratón deben pasar antes de iniciar la simulación. Está activado inicialmente a **300 segundos (5 minutos)** y se puede desactivar con la casilla.
@@ -38,6 +46,12 @@ Para pasar desde una copia antigua sin actualizador, abre una vez el instalador 
 En **Bromas y easter eggs** puedes elegir Todos (inicial), Sarcasmo suave, Mascota y animaciones o Discreto. El despertar breve del fondo tiene una casilla independiente: una tecla lo muestra cuatro segundos y vuelve a negro.
 
 Las reacciones aparecen solo en la pantalla elegida y se retiran solas, sin reiniciar el plazo para pasar a negro. No tienen sonido ni guardan texto. Los contadores y logros viven en memoria hasta la siguiente simulación. El [catálogo de guiños](docs/EASTER_EGGS.md) contiene los gestos, por si quieres destripar la sorpresa.
+
+## El rincón del gato
+
+Pinball con estética de booknook, lluvia animada en la ventana, luz cálida y parpadeos del gato. **Ctrl izquierdo y Ctrl derecho** accionan las palancas; **Espacio** lanza el ovillo, **P** pausa y **Esc** vuelve a la simulación. Hay tres ovillos por partida y puntos al tocar los topes.
+
+El atajo de salida conserva la prioridad durante la partida. Solo aparece en la pantalla elegida y las demás siguen negras. El juego no tiene sonido y cierra sus animaciones al salir; también vuelve a la simulación tras un minuto sin interacción.
 
 ## Compilar y comprobar
 

@@ -75,7 +75,6 @@ internal static class Program
 
 internal static class Native
 {
-    internal const int HotkeyId = 172;
     internal const int WmHotkey = 0x0312;
     [DllImport("user32.dll")] internal static extern bool SetProcessDPIAware();
     [DllImport("user32.dll", SetLastError = true)] internal static extern bool RegisterHotKey(IntPtr hwnd, int id, uint modifiers, uint key);
@@ -118,8 +117,6 @@ internal sealed partial class LockController : IDisposable
     private int activityDirection = -1;
     internal string LastActivityError { get; private set; }
     internal bool KeepingAwake { get { return keepingAwake; } }
-    internal bool HotkeyRegistered { get; private set; }
-    internal int VirtualKey { get; private set; }
     internal IntPtr Handle { get { return source.Handle; } }
     internal IList<LockWindow> Windows { get { return windows.AsReadOnly(); } }
 
@@ -134,17 +131,7 @@ internal sealed partial class LockController : IDisposable
             parameters.ParentWindow = new IntPtr(-3);
             source = new HwndSource(parameters);
             source.AddHook(WindowMessage);
-            uint thread = Native.GetWindowThreadProcessId(Native.GetForegroundWindow(), IntPtr.Zero);
-            short mapping = Native.VkKeyScanEx('ñ', Native.GetKeyboardLayout(thread));
-            if (mapping == -1 || (mapping >> 8) != 0)
-                throw new InvalidOperationException("El teclado activo debe tener la tecla Ñ en su distribución.");
-            VirtualKey = mapping & 0xff;
-            if (!Native.RegisterHotKey(source.Handle, Native.HotkeyId, 0x4008, (uint)VirtualKey))
-            {
-                int error = Marshal.GetLastWin32Error();
-                throw new Win32Exception(error, "No se pudo reservar el atajo solicitado (tecla " + VirtualKey.ToString("X2") + ", error " + error + ").");
-            }
-            HotkeyRegistered = true;
+            InitializeHotkeys();
 
             toggleEvent = new EventWaitHandle(false, EventResetMode.AutoReset, Program.ToggleName);
             quitEvent = new EventWaitHandle(false, EventResetMode.AutoReset, Program.QuitName);
@@ -203,13 +190,14 @@ internal sealed partial class LockController : IDisposable
             UpdatesChanged(this, EventArgs.Empty);
             updates.Start();
             idle = new IdleActivationMonitor(new SystemIdleInput(), delegate { return settings; },
-                delegate { return !disposed && !closing && !activating && !sessionLocked && windows.Count == 0 && configuration == null && updates.Phase != UpdatePhase.Installing; },
+                delegate { return HotkeyRegistered && !disposed && !closing && !activating && !sessionLocked && windows.Count == 0 && configuration == null && updates.Phase != UpdatePhase.Installing; },
                 delegate
                 {
                     try { Show(); }
                     catch { tray.ShowBalloonTip(5000, AppIdentity.DisplayName, "No se pudo activar la simulación. Puedes volver a intentarlo manualmente.", Forms.ToolTipIcon.Warning); }
                 });
             idle.Start();
+            if (hotkeyError != null) Dispatch(OpenSettings);
         }
         catch { Dispose(); throw; }
     }
@@ -222,10 +210,14 @@ internal sealed partial class LockController : IDisposable
 
     private IntPtr WindowMessage(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
-        if (message == Native.WmHotkey && wParam.ToInt32() == Native.HotkeyId)
+        if (message == Native.WmHotkey && hotkeys != null)
         {
-            Toggle();
-            handled = true;
+            var action = hotkeys.ActionFor(wParam.ToInt32());
+            handled = action != ShortcutAction.None;
+            if (action == ShortcutAction.Toggle) Toggle();
+            else if (action == ShortcutAction.Activate) Show();
+            else if (action == ShortcutAction.Unlock) Hide();
+            else if (action == ShortcutAction.Game) OpenPinball();
         }
         return IntPtr.Zero;
     }
@@ -240,6 +232,7 @@ internal sealed partial class LockController : IDisposable
     private void Show(bool resetFun = true)
     {
         if (disposed || activating || windows.Count > 0) return;
+        if (!HotkeyRegistered) { OpenSettings(); return; }
         activating = true;
         try
         {
@@ -279,6 +272,7 @@ internal sealed partial class LockController : IDisposable
     {
         var window = new LockWindow(screen, showImage, settings);
         window.KeyPressed += FunKeyDown;
+        window.KeyReleased += FunKeyUp;
         window.TextEntered += FunTextInput;
         window.MousePressed += FunMouseDown;
         window.PointerMoved += FunMouseMove;
@@ -306,10 +300,11 @@ internal sealed partial class LockController : IDisposable
     {
         if (windows.Count != 0) return;
         if (configuration != null) { configuration.Activate(); return; }
-        configuration = new SettingsWindow(settings, updates, fun.Stats);
+        configuration = new SettingsWindow(settings, updates, fun.Stats, SavePreferences);
         configuration.Saved += delegate(AppSettings updated) { settings = updated; if (idle != null) idle.Reset(); };
         configuration.Closed += delegate { configuration = null; };
         configuration.Show();
+        if (hotkeyError != null) configuration.ShowShortcutError(hotkeyError);
     }
 
     private void UpdatesChanged(object sender, EventArgs e)
@@ -358,8 +353,7 @@ internal sealed partial class LockController : IDisposable
         if (tray != null) { tray.Visible = false; tray.Dispose(); }
         if (source != null)
         {
-            if (HotkeyRegistered) Native.UnregisterHotKey(source.Handle, Native.HotkeyId);
-            HotkeyRegistered = false;
+            if (hotkeys != null) hotkeys.Dispose();
             source.Dispose();
         }
     }

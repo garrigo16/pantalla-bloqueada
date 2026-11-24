@@ -25,3 +25,13 @@ $funTests = Join-Path $build 'EasterEggTests.exe'
 if ($LASTEXITCODE -ne 0) { throw 'Error al compilar las pruebas de easter eggs.' }
 & $funTests
 if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas de easter eggs.' }
+$hotkeyTests = Join-Path $build 'HotkeyTests.exe'
+& $compiler /nologo /target:exe /main:HotkeyTests /codepage:65001 ('/out:' + $hotkeyTests) @shared @app (Join-Path $repo 'tests\HotkeyTests.cs') '/reference:System.Windows.Forms.dll' '/reference:System.Drawing.dll' '/reference:System.Xaml.dll' '/reference:System.Net.Http.dll' '/reference:System.Runtime.Serialization.dll' @references
+if ($LASTEXITCODE -ne 0) { throw 'Error al compilar las pruebas de atajos.' }
+& $hotkeyTests
+if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas de atajos.' }
+$pinballTests = Join-Path $build 'PinballTests.exe'
+& $compiler /nologo /target:exe /main:PinballTests /codepage:65001 ('/out:' + $pinballTests) (Join-Path $repo 'src\App\PinballPhysics.cs') (Join-Path $repo 'tests\PinballTests.cs')
+if ($LASTEXITCODE -ne 0) { throw 'Error al compilar las pruebas del pinball.' }
+& $pinballTests
+if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas del pinball.' }

@@ -13,8 +13,9 @@ $icon = Join-Path $build 'Bao.ico'
 & (Join-Path $PSScriptRoot 'BuildIcon.ps1') -OutputPath $icon
 $iconOption = '/win32icon:' + $icon
 $iconResource = '/resource:' + $icon + ',Bao.ico'
+$gameResources = @(('/resource:' + (Join-Path $repo 'assets\pinball-nook.png') + ',PinballNook.png'), ('/resource:' + (Join-Path $repo 'assets\pinball-blink.png') + ',PinballBlink.png'))
 $appExe = Join-Path $build 'DrifftAnalyzer.exe'
-& $compiler /nologo /target:winexe /platform:anycpu /optimize+ /codepage:65001 $iconOption $iconResource '/reference:System.Windows.Forms.dll' '/reference:System.Drawing.dll' '/reference:System.Xaml.dll' '/reference:System.Net.Http.dll' '/reference:System.Runtime.Serialization.dll' @references ('/out:' + $appExe) @shared @appSources
+& $compiler /nologo /target:winexe /platform:anycpu /optimize+ /codepage:65001 $iconOption $iconResource @gameResources '/reference:System.Windows.Forms.dll' '/reference:System.Drawing.dll' '/reference:System.Xaml.dll' '/reference:System.Net.Http.dll' '/reference:System.Runtime.Serialization.dll' @references ('/out:' + $appExe) @shared @appSources
 if ($LASTEXITCODE -ne 0) { throw 'Error al compilar la aplicación.' }
 $remove = Join-Path $OutputDirectory 'Desinstalar.exe'
 & $compiler /nologo /target:winexe /platform:anycpu /optimize+ /codepage:65001 $iconOption /define:UNINSTALLER '/reference:System.Windows.Forms.dll' '/reference:System.Drawing.dll' ('/out:' + $remove) @shared @setup

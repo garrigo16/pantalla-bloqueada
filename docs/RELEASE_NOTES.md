@@ -1,9 +1,11 @@
-La aplicación pasa a llamarse Drifft Analyzer.
+Atajos personalizables y un nuevo easter egg: El rincón del gato.
 
-- Nuevo nombre en la bandeja, ventanas, avisos, instalador y descripción de Windows.
-- Ejecutable DrifftAnalyzer.exe e inicio automático con el nombre Drifft Analyzer.
-- Al actualizar se retira el ejecutable anterior y se conservan todos los ajustes y la elección de inicio automático.
-- Si la migración falla se recuperan los archivos y el inicio anteriores.
-- Paquete para compartir DrifftAnalyzer.zip. El icono de bao y todos los easter eggs se mantienen.
+- Configura una combinación compartida para activar y salir, o dos independientes. Se aplican al guardar, sin reiniciar.
+- Si una combinación está ocupada o falla el guardado, siguen funcionando las anteriores. Los ajustes antiguos conservan el atajo inicial.
+- Abre el pinball con tu atajo de salida añadiendo Shift. Shift queda reservado para el juego en la salida.
+- Mesa lofi de booknook: gato que parpadea, lluvia animada en la ventana y luz cálida.
+- Ctrl izquierdo y Ctrl derecho mueven las palancas; Espacio lanza el ovillo, P pausa y Esc vuelve a la simulación.
+- Tres ovillos, topes y puntuación. Solo en la pantalla elegida, con las demás negras.
+- Tu atajo de salida funciona durante toda la partida y nunca aparece en la mesa.
 
-El actualizador de las versiones anteriores sigue funcionando con la misma dirección del repositorio y el mismo Iniciar.exe.
+Conserva tus preferencias, el icono del bao y todos los easter eggs anteriores.
