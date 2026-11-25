@@ -54,12 +54,22 @@ public sealed class AppSettings
                 if (settings.ActivityIntervalSeconds < 15 || settings.ActivityIntervalSeconds > 600) settings.ActivityIntervalSeconds = 300;
                 if (settings.IdleSeconds < 1 || settings.IdleSeconds > 86400) settings.IdleSeconds = 300;
                 if (!Enum.IsDefined(typeof(HumorMode), settings.Humor)) settings.Humor = HumorMode.Todos;
-                if (new HotkeySpec(settings.ActivateModifiers, settings.ActivateKey).Error != null) { settings.ActivateModifiers = 8; settings.ActivateKey = 0; }
-                if (new HotkeySpec(settings.UnlockModifiers, settings.UnlockKey).Error != null) { settings.UnlockModifiers = 8; settings.UnlockKey = 0; }
+                settings.NormalizeShortcuts();
                 return settings;
             }
         }
         catch { return new AppSettings(); }
+    }
+
+    internal void NormalizeShortcuts()
+    {
+        var defaults = new AppSettings();
+        var activation = new HotkeySpec(ActivateModifiers & ~4, ActivateKey);
+        var exit = new HotkeySpec(UnlockModifiers & ~4, UnlockKey);
+        ActivateModifiers = activation.Error == null ? activation.Modifiers : defaults.ActivateModifiers;
+        ActivateKey = activation.Error == null ? activation.Key : defaults.ActivateKey;
+        UnlockModifiers = exit.Error == null ? exit.Modifiers : defaults.UnlockModifiers;
+        UnlockKey = exit.Error == null ? exit.Key : defaults.UnlockKey;
     }
 
     internal void Save()

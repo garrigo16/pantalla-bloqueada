@@ -11,12 +11,37 @@ internal struct HotkeySpec
     {
         get
         {
-            if ((Modifiers & ~15) != 0 || (Modifiers & 11) == 0) return "Elige Ctrl, Alt o Win junto con una tecla. Puedes añadir Shift.";
+            if ((Modifiers & 4) != 0) return "Shift se usa para abrir el pinball.";
+            if ((Modifiers & ~11) != 0 || Modifiers == 0) return "Elige Ctrl, Alt o Win junto con una tecla.";
             if (!(Key == 0 || (Key >= 0x30 && Key <= 0x39) || (Key >= 0x41 && Key <= 0x5a) || (Key >= 0x70 && Key <= 0x87)))
-                return "Elige una letra, un número o una tecla de función.";
-            if (Key == 0x7b) return "F12 está reservada por Windows. Elige otra tecla.";
-            if ((Modifiers & 8) != 0 && Key == 0x4c) return "Win + L bloquea Windows. Elige otra combinación para la simulación.";
+                return "Elige una tecla de la lista.";
+            if (WindowsUsesShortcut) return "Windows usa " + this + ". Elige otra combinación.";
             return null;
+        }
+    }
+    internal bool WindowsUsesShortcut
+    {
+        get
+        {
+            if (Key == 0x7b) return true; // F12 está reservada para el depurador de Windows.
+
+            bool letter = Key >= 'A' && Key <= 'Z';
+            bool number = Key >= '0' && Key <= '9';
+            if ((Modifiers & 8) != 0)
+            {
+                // Letras y números con Win: Windows usa esta familia en el escritorio y la barra de tareas.
+                return letter || number || (Modifiers == 10 && Key == 0x73);
+            }
+
+            // Atajos de edición, Explorador, menús y Lupa documentados por Microsoft.
+            switch (Modifiers)
+            {
+                case 1: return "ADP".IndexOf((char)Key) >= 0 || Key == 0x73 || Key == 0x77;
+                case 2: return "ABCDEFHILMNOPRSTUVWXYZ".IndexOf((char)Key) >= 0 ||
+                    (Key >= '1' && Key <= '9') || Key == 0x73 || Key == 0x74;
+                case 3: return "DFHIKLMPR".IndexOf((char)Key) >= 0;
+                default: return false;
+            }
         }
     }
     internal static string KeyLabel(int key)

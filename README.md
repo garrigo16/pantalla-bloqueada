@@ -20,7 +20,9 @@ Los valores iniciales son una pantalla con fondo durante **20 segundos**, el res
 
 En **Configurar → Atajos de teclado** puedes elegir una combinación compartida para activar y salir, o una distinta para cada acción. Los cambios se aplican al guardar, sin reiniciar. Se mantiene el atajo inicial en instalaciones anteriores. Si una reserva está ocupada o falla el guardado, continúan funcionando los atajos anteriores.
 
-El **pinball** se abre añadiendo **Shift al atajo de salida**. Shift queda reservado para esa función; la combinación de activación independiente puede utilizarlo si no coincide con la del juego. Ninguna combinación de salida se muestra en las pantallas simuladas.
+El selector oculta las combinaciones que usa Windows. Al cargar ajustes antiguos, la app retira Shift de los atajos configurados y recupera **Win + Ñ** si una combinación deja de estar disponible.
+
+El **pinball** se abre añadiendo **Shift al atajo de salida**. Shift queda reservado para esa función. Ninguna combinación de salida se muestra en las pantallas simuladas.
 
 Si el teclado no tiene Ñ o una combinación no se puede registrar al arrancar, la app abre el configurador para elegir otra y mantiene desactivada la simulación hasta disponer de los atajos.
 

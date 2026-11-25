@@ -31,6 +31,7 @@ internal static class HotkeyTests
     { try { action(); } catch (ShortcutException) { Check(true, text); return; } throw new Exception("No se rechazó: " + text); }
     private static AppSettings Custom(int key, bool same)
     { return new AppSettings { ActivateModifiers = 3, ActivateKey = key, SameHotkey = same, UnlockModifiers = 3, UnlockKey = key + 1 }; }
+    [STAThread]
     private static int Main()
     {
         try
@@ -46,6 +47,25 @@ internal static class HotkeyTests
             Check(new HotkeySpec(8, 0).ToString() == "Win + Ñ" && new HotkeySpec(7, 0x77).ToString() == "Ctrl + Alt + Shift + F8", "Los nombres de las combinaciones son legibles");
             Check(new HotkeySpec(0, 0x41).Error != null && new HotkeySpec(4, 0x41).Error != null && new HotkeySpec(16, 0x41).Error != null, "Rechaza teclas de escritura sueltas y modificadores inválidos");
             Check(new HotkeySpec(8, 0x4c).Error != null && new HotkeySpec(2, 0x7b).Error != null && new HotkeySpec(2, 0xff).Error != null, "Rechaza Win+L, F12 y teclas no admitidas");
+            for (int key = 'A'; key <= 'Z'; key++)
+                if (new HotkeySpec(8, key).Error == null) throw new Exception("Win + " + (char)key + " debe quedar libre para Windows.");
+            Check(new HotkeySpec(8, '1').Error != null && new HotkeySpec(2, 'C').Error != null &&
+                new HotkeySpec(1, 0x73).Error != null && new HotkeySpec(3, 'F').Error != null &&
+                new HotkeySpec(3, 'B').Error == null, "Descarta atajos de Windows según los modificadores y conserva combinaciones libres");
+            var previous = new AppSettings { SameHotkey = false, ActivateModifiers = 7, ActivateKey = 0x77,
+                UnlockModifiers = 8, UnlockKey = 'E', TimeoutSeconds = 73 };
+            previous.NormalizeShortcuts();
+            Check(previous.ActivateModifiers == 3 && previous.ActivateKey == 0x77 &&
+                previous.UnlockModifiers == 8 && previous.UnlockKey == 0 && !previous.SameHotkey && previous.TimeoutSeconds == 73,
+                "Al cargar ajustes antiguos quita Shift y sustituye solo el atajo reservado");
+            var editor = new ShortcutEditor("Prueba", new HotkeySpec(3, 'B'));
+            Check(editor.Spec.Key == 'B' && editor.Spec.Error == null, "El selector acepta Ctrl+Alt+B");
+            editor.Win.IsChecked = true;
+            Check(editor.Spec.Key == -1 && editor.Spec.Error != null, "El selector pide otra tecla cuando la selección entra en conflicto");
+            foreach (System.Windows.Controls.ComboBoxItem item in editor.Key.Items)
+                if ((int)item.Tag >= 'A' && (int)item.Tag <= 'Z') throw new Exception("El selector aún ofrece letras reservadas con Win.");
+            editor.Key.SelectedValue = 0;
+            Check(editor.Spec.Key == 0 && editor.Spec.Error == null, "El selector permite Ñ con Win y actualiza la combinación");
 
             var platform = new FakeHotkeyPlatform();
             using (var manager = new HotkeyRegistration(platform))
@@ -80,9 +100,12 @@ internal static class HotkeyTests
                 Check(platform.Registered.Count == 3 && manager.ActionFor(unlock) == ShortcutAction.Unlock, "El conflicto del juego conserva el desbloqueo anterior");
                 platform.Conflicts.Clear();
                 var shiftedExit = Custom(0x79, true); shiftedExit.ActivateModifiers = 7;
-                Reject(delegate { manager.Prepare(shiftedExit); }, "Shift queda libre en la salida para abrir el juego");
+                Reject(delegate { manager.Prepare(shiftedExit); }, "Shift queda libre en el atajo compartido para abrir el juego");
                 var collision = Custom(0x77, false); collision.ActivateModifiers = 7; collision.ActivateKey = collision.UnlockKey;
-                Reject(delegate { manager.Prepare(collision); }, "La activación no puede ocupar la combinación del juego");
+                Reject(delegate { manager.Prepare(collision); }, "También rechaza Shift en una activación independiente");
+                var reserved = new AppSettings { SameHotkey = false, ActivateModifiers = 8, ActivateKey = 'E', UnlockModifiers = 3, UnlockKey = 0x78 };
+                Reject(delegate { manager.Prepare(reserved); }, "Una combinación reservada no llega al registro de Windows");
+                Check(platform.Registered.Count == 3 && manager.ActionFor(unlock) == ShortcutAction.Unlock, "El rechazo conserva la activación y la salida en uso");
                 var swap = Custom(0x78, false); swap.UnlockKey = 0x77;
                 using (var change = manager.Prepare(swap)) change.Commit();
                 Check(manager.ActionFor(activate) == ShortcutAction.Unlock && manager.ActionFor(unlock) == ShortcutAction.Activate, "Intercambiar los atajos no pierde sus reservas");

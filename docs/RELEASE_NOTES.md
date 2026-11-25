@@ -1,4 +1,5 @@
-Drifft Analyzer 1.6.5 admite actualizaciones de hasta 512 MiB, el doble que la versión anterior.
+Drifft Analyzer 1.6.6 filtra los atajos de Windows en el configurador.
 
-- Las descargas más grandes disponen de hasta 20 minutos. La app verifica el tamaño y la suma SHA-256 antes de instalar.
-- Puedes actualizar a la 1.6.5 desde el botón **Actualizar**. Las versiones antiguas que descargan Iniciar.exe reciben un instalador pequeño y este descarga el paquete completo.
+- La lista de teclas muestra las combinaciones disponibles según los modificadores seleccionados. Con Win quedan disponibles Ñ y las teclas de función que admite la app.
+- Shift se reserva para abrir el pinball al añadirlo al atajo de salida.
+- Los ajustes antiguos se adaptan al cargarse. Si la combinación sigue siendo válida al quitar Shift, la app la conserva. Si Windows la usa, recupera Win + Ñ para ese atajo.

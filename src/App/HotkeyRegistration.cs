@@ -41,12 +41,10 @@ internal sealed class HotkeyRegistration : IDisposable
         var second = preferences.SameHotkey ? first : new HotkeySpec(preferences.UnlockModifiers, preferences.UnlockKey);
         if (first.Error != null) throw new ShortcutException(first.Error);
         if (second.Error != null) throw new ShortcutException(second.Error);
-        if ((second.Modifiers & 4) != 0) throw new ShortcutException("Deja Shift libre en el atajo de salida: se usa para abrir el pinball.");
         int enye = first.Key == 0 || second.Key == 0 ? platform.ResolveEnye() : 0;
         var active = new HotkeyChord(first.Modifiers, first.Key == 0 ? enye : first.Key);
         var inactive = new HotkeyChord(second.Modifiers, second.Key == 0 ? enye : second.Key);
         var play = new HotkeyChord(inactive.Modifiers | 4, inactive.Key);
-        if (active.Equals(play)) throw new ShortcutException("El atajo de activación coincide con el del pinball. Elige otra combinación.");
         var proposed = new Dictionary<HotkeyChord, int>();
         var created = new List<int>();
         try

@@ -6,10 +6,11 @@ using System.Windows.Media;
 // Autor: Miquel Garrigo
 internal sealed class ShortcutEditor : StackPanel
 {
-    internal readonly CheckBox Win, Ctrl, Alt, Shift;
+    internal readonly CheckBox Win, Ctrl, Alt;
     internal readonly ComboBox Key;
     internal readonly TextBlock Heading;
     private readonly TextBlock preview;
+    private bool updatingSelection;
     internal event Action Changed;
     internal ShortcutEditor(string title, HotkeySpec value)
     {
@@ -17,15 +18,12 @@ internal sealed class ShortcutEditor : StackPanel
         Children.Add(Heading);
         var modifiers = new WrapPanel();
         Win = AddModifier(modifiers, "Win"); Ctrl = AddModifier(modifiers, "Ctrl");
-        Alt = AddModifier(modifiers, "Alt"); Shift = AddModifier(modifiers, "Shift");
+        Alt = AddModifier(modifiers, "Alt");
         Children.Add(modifiers);
         var keys = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 4, 0, 7) };
         keys.Children.Add(new TextBlock { Text = "Tecla", VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 14, 0) });
-        Key = new ComboBox { Width = 110, MinHeight = 36, Padding = new Thickness(7, 4, 7, 4), Foreground = Brushes.Black };
-        AddKey(0);
-        for (int i = 0x41; i <= 0x5a; i++) AddKey(i);
-        for (int i = 0x30; i <= 0x39; i++) AddKey(i);
-        for (int i = 0x70; i <= 0x87; i++) if (i != 0x7b) AddKey(i);
+        Key = new ComboBox { Width = 110, MinHeight = 36, Padding = new Thickness(7, 4, 7, 4),
+            Foreground = Brushes.Black, SelectedValuePath = "Tag" };
         keys.Children.Add(Key); Children.Add(keys);
         preview = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 14, Margin = new Thickness(0, 0, 0, 14) };
         Children.Add(preview);
@@ -35,32 +33,61 @@ internal sealed class ShortcutEditor : StackPanel
     private CheckBox AddModifier(Panel panel, string label)
     {
         var control = new CheckBox { Content = label, Margin = new Thickness(0, 0, 16, 9) };
-        control.Checked += delegate { Refresh(); }; control.Unchecked += delegate { Refresh(); };
+        control.Checked += ModifiersChanged;
+        control.Unchecked += ModifiersChanged;
         panel.Children.Add(control); return control;
     }
-    private void AddKey(int key) { Key.Items.Add(new ComboBoxItem { Content = HotkeySpec.KeyLabel(key), Tag = key }); }
+    private int Modifiers
+    {
+        get { return (Win.IsChecked == true ? 8 : 0) | (Ctrl.IsChecked == true ? 2 : 0) | (Alt.IsChecked == true ? 1 : 0); }
+    }
+    private void ModifiersChanged(object sender, RoutedEventArgs args)
+    {
+        if (updatingSelection) return;
+        UpdateKeys(Spec.Key);
+        Refresh();
+    }
+    private void UpdateKeys(int selectedKey)
+    {
+        Key.Items.Clear();
+        AddKey(0);
+        for (int key = 'A'; key <= 'Z'; key++) AddKey(key);
+        for (int key = '0'; key <= '9'; key++) AddKey(key);
+        for (int key = 0x70; key <= 0x87; key++) AddKey(key);
+        Key.SelectedValue = selectedKey;
+    }
+    private void AddKey(int key)
+    {
+        if (!new HotkeySpec(Modifiers, key).WindowsUsesShortcut)
+            Key.Items.Add(new ComboBoxItem { Content = HotkeySpec.KeyLabel(key), Tag = key });
+    }
     internal HotkeySpec Spec
     {
         get
         {
-            var item = Key.SelectedItem as ComboBoxItem;
-            return new HotkeySpec((Win.IsChecked == true ? 8 : 0) | (Ctrl.IsChecked == true ? 2 : 0) |
-                (Alt.IsChecked == true ? 1 : 0) | (Shift.IsChecked == true ? 4 : 0), item == null ? 0 : (int)item.Tag);
+            return new HotkeySpec(Modifiers, Key.SelectedValue is int ? (int)Key.SelectedValue : -1);
         }
         set
         {
-            Win.IsChecked = (value.Modifiers & 8) != 0; Ctrl.IsChecked = (value.Modifiers & 2) != 0;
-            Alt.IsChecked = (value.Modifiers & 1) != 0; Shift.IsChecked = (value.Modifiers & 4) != 0;
-            foreach (ComboBoxItem item in Key.Items) if ((int)item.Tag == value.Key) { Key.SelectedItem = item; break; }
+            updatingSelection = true;
+            try
+            {
+                Win.IsChecked = (value.Modifiers & 8) != 0;
+                Ctrl.IsChecked = (value.Modifiers & 2) != 0;
+                Alt.IsChecked = (value.Modifiers & 1) != 0;
+                UpdateKeys(value.Key);
+            }
+            finally { updatingSelection = false; }
             Refresh();
         }
     }
     private void Refresh()
     {
-        if (preview == null || Key == null) return;
+        if (updatingSelection) return;
         var spec = Spec;
-        preview.Text = spec.Error ?? spec.ToString();
-        preview.Foreground = spec.Error == null ? new SolidColorBrush(Color.FromRgb(166, 182, 209)) : Brushes.LightSalmon;
+        string message = spec.Error;
+        preview.Text = message ?? spec.ToString();
+        preview.Foreground = message == null ? new SolidColorBrush(Color.FromRgb(166, 182, 209)) : Brushes.LightSalmon;
         if (Changed != null) Changed();
     }
 }
@@ -80,7 +107,7 @@ internal sealed class ShortcutOptions : StackPanel
         Children.Add(Activate); Children.Add(Unlock);
         gamePreview = new TextBlock { FontSize = 14, FontWeight = FontWeights.SemiBold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 10) };
         Children.Add(gamePreview);
-        Children.Add(new TextBlock { Text = "Elige Ctrl, Alt o Win y una tecla. Shift queda libre en la salida para abrir el pinball. Se aplican al guardar y solo se muestran aquí.",
+        Children.Add(new TextBlock { Text = "Elige Ctrl, Alt o Win y una tecla disponible. La lista oculta los atajos de Windows. Para el pinball, añade Shift al atajo de salida.",
             TextWrapping = TextWrapping.Wrap, FontSize = 14, Foreground = new SolidColorBrush(Color.FromRgb(166, 182, 209)), Margin = new Thickness(0, 0, 0, 12) });
         var reset = new Button { Content = "Restablecer atajos", HorizontalAlignment = HorizontalAlignment.Left, FontSize = 14 };
         reset.Click += delegate { Same.IsChecked = true; Activate.Spec = Unlock.Spec = new HotkeySpec(8, 0); };
@@ -94,13 +121,9 @@ internal sealed class ShortcutOptions : StackPanel
     private void Refresh()
     {
         Unlock.Visibility = Same.IsChecked == true ? Visibility.Collapsed : Visibility.Visible;
-        Activate.Shift.IsEnabled = Same.IsChecked != true;
-        Unlock.Shift.IsEnabled = false;
-        if (Same.IsChecked == true && Activate.Shift.IsChecked == true) Activate.Shift.IsChecked = false;
-        if (Unlock.Shift.IsChecked == true) Unlock.Shift.IsChecked = false;
         Activate.Heading.Text = Same.IsChecked == true ? "Activar y salir de la simulación" : "Activar la simulación";
         var exit = Same.IsChecked == true ? Activate.Spec : Unlock.Spec;
-        gamePreview.Text = "Pinball: " + new HotkeySpec(exit.Modifiers | 4, exit.Key);
+        gamePreview.Text = exit.Error == null ? "Pinball: " + new HotkeySpec(exit.Modifiers | 4, exit.Key) : "";
         error.Text = ""; error.Visibility = Visibility.Collapsed;
     }
     internal void ApplyTo(AppSettings settings)
@@ -110,7 +133,8 @@ internal sealed class ShortcutOptions : StackPanel
         if (message != null) throw new ShortcutException(message);
         settings.ActivateModifiers = active.Modifiers; settings.ActivateKey = active.Key;
         settings.SameHotkey = Same.IsChecked == true;
-        settings.UnlockModifiers = inactive.Modifiers; settings.UnlockKey = inactive.Key;
+        settings.UnlockModifiers = inactive.Error == null ? inactive.Modifiers : active.Modifiers;
+        settings.UnlockKey = inactive.Error == null ? inactive.Key : active.Key;
     }
     internal void ShowError(string message) { error.Text = message; error.Visibility = Visibility.Visible; }
 }
