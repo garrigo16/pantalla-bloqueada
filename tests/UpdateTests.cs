@@ -117,6 +117,14 @@ internal static class UpdateTests
 
     private static async Task Run()
     {
+        var previousProtocol = ServicePointManager.SecurityProtocol;
+        try
+        {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls;
+            using (var freshDownload = new InstallerDownload(new StubHandler { Respond = delegate { return new HttpResponseMessage(HttpStatusCode.OK); } }, root))
+                Check((ServicePointManager.SecurityProtocol & SecurityProtocolType.Tls12) != 0, "El instalador inicial activa TLS 1.2 sin depender de haber consultado antes la API");
+        }
+        finally { ServicePointManager.SecurityProtocol = previousProtocol; }
         var release = NewRelease();
         string json = Json(release.Tag, false, false, release.DownloadUrl, "sha256:" + release.Sha256);
         Check(UpdateRelease.ParseVersion("v1.10.0") > UpdateRelease.ParseVersion("1.9.0"), "Compara versiones numéricamente");

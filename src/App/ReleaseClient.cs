@@ -171,6 +171,8 @@ internal sealed class InstallerDownload : IInstallerDownload
     internal InstallerDownload() : this(new HttpClientHandler { AllowAutoRedirect = false }, Path.GetTempPath()) { }
     internal InstallerDownload(HttpMessageHandler handler, string tempRoot)
     {
+        // También se usa desde Iniciar.exe sin haber creado antes el cliente de la API.
+        ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
         client = new HttpClient(handler) { Timeout = TimeSpan.FromMinutes(4) };
         client.DefaultRequestHeaders.UserAgent.ParseAdd("DrifftAnalyzer/" + ProductVersion.Current);
         temporaryRoot = Path.GetFullPath(tempRoot);
