@@ -25,7 +25,7 @@ public sealed class UpdateRelease
     public long Size { get; set; }
     public string AssetName { get; set; }
     internal string FileName { get { return string.IsNullOrEmpty(AssetName) ? ReleaseSource.InstallerName : AssetName; } }
-    internal const long MaximumSize = 256L * 1024 * 1024;
+    internal const long MaximumSize = 512L * 1024 * 1024;
 
     internal static System.Version ParseVersion(string value)
     {
@@ -186,7 +186,8 @@ internal sealed class InstallerDownload : IInstallerDownload
         string file = Path.Combine(directory, release.FileName);
         using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation))
         {
-        timeout.CancelAfter(TimeSpan.FromMinutes(10));
+        double downloadMinutes = Math.Max(10, 20.0 * release.Size / UpdateRelease.MaximumSize);
+        timeout.CancelAfter(TimeSpan.FromMinutes(downloadMinutes));
         cancellation = timeout.Token;
         try
         {

@@ -130,12 +130,15 @@ internal static class UpdateTests
         Check(UpdateRelease.ParseVersion("v1.10.0") > UpdateRelease.ParseVersion("1.9.0"), "Compara versiones numéricamente");
         Check(UpdateRelease.FromJson(json, "1.1.0").Version == "1.2.0", "Reconoce la versión estable nueva con su SHA-256");
         Check(UpdateRelease.FromJson(json, "1.2.0") == null && UpdateRelease.FromJson(json, "1.3.0") == null, "No ofrece reinstalar ni bajar de versión");
-        var large = NewRelease(); large.Size = 110L * 1024 * 1024; large.Validate();
-        Check(true, "Admite el tamaño real del instalador con el juego completo, superior a 64 MiB");
-        large.Size = UpdateRelease.MaximumSize + 1;
-        Reject(delegate { large.Validate(); }, "Mantiene un límite de tamaño para rechazar descargas desmesuradas");
         string fullJson = json.Replace("Iniciar.exe", ReleaseSource.FullInstallerName);
         Check(UpdateRelease.FromJson(fullJson, "1.1.0").FileName == ReleaseSource.FullInstallerName, "Las versiones nuevas reconocen el instalador completo");
+        const long maximumSize = 512L * 1024 * 1024;
+        string originalSize = "\"size\":" + installer.Length;
+        string atLimit = fullJson.Replace(originalSize, "\"size\":" + maximumSize);
+        Check(UpdateRelease.FromJson(atLimit, "1.1.0").Size == maximumSize,
+            "Reconoce el instalador completo de 512 MiB como actualización");
+        string overLimit = fullJson.Replace(originalSize, "\"size\":" + (maximumSize + 1));
+        Reject(delegate { UpdateRelease.FromJson(overLimit, "1.1.0"); }, "Rechaza un instalador de más de 512 MiB");
         string combinedJson = json.Substring(0, json.Length - 2) + "," + fullJson.Substring(fullJson.IndexOf('[') + 1);
         Check(UpdateRelease.FromJson(combinedJson, "1.1.0").FileName == ReleaseSource.FullInstallerName, "El cliente nuevo prefiere el paquete completo aunque el instalador antiguo aparezca primero");
         Reject(delegate { UpdateRelease.ParseVersion("v1.2.0-beta"); }, "Rechaza etiquetas no estables");
