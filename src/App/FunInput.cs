@@ -106,7 +106,7 @@ internal sealed partial class LockWindow
     internal void React(FunReaction reaction, Point? pointer) { if (funOverlay != null && pinball == null) funOverlay.Show(reaction, pointer); }
     internal void Peek()
     {
-        if (!darkened || imageLayer == null) return;
+        if (!darkened || imageLayer == null || (lunarScene != null && lunarScene.IsVisible)) return;
         imageLayer.Visibility = Visibility.Visible;
         UpdateClock(); if (timer != null) timer.Start();
         peekTimer.Stop(); peekTimer.Start();

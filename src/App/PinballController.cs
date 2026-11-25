@@ -30,7 +30,12 @@ internal sealed partial class LockWindow
     {
         if (!HasImage || pinball != null) return;
         if (funOverlay != null) funOverlay.Clear();
-        pinball = new PinballGame(Surface, delegate { pinball = null; });
+        pinball = new PinballGame(Surface, delegate
+        {
+            pinball = null;
+            if (lunarScene != null && lunarScene.IsVisible) lunarScene.SetRunning(true);
+        });
+        if (lunarScene != null) lunarScene.SetRunning(false);
     }
     internal void PinballInput(Key key, bool down, bool repeat) { if (pinball != null) pinball.Key(key, down, repeat); }
 }

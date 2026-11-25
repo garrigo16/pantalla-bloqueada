@@ -10,6 +10,6 @@ using System.Reflection;
 
 internal static class ProductVersion
 {
-    internal const string Current = "1.6.6";
-    internal const string Assembly = "1.6.6.0";
+    internal const string Current = "1.6.7";
+    internal const string Assembly = "1.6.7.0";
 }

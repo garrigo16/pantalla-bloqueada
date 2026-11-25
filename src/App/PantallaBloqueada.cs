@@ -369,7 +369,8 @@ internal sealed partial class LockWindow : Window
     internal readonly Grid Surface;
     internal readonly bool HasImage;
     private Grid imageLayer;
-    internal bool IsDark { get { return imageLayer == null || imageLayer.Visibility != Visibility.Visible; } }
+    internal bool IsDark { get { return (imageLayer == null || imageLayer.Visibility != Visibility.Visible) &&
+        (lunarScene == null || lunarScene.Visibility != Visibility.Visible); } }
     private readonly CultureInfo culture = CultureInfo.GetCultureInfo("es-ES");
 
     internal LockWindow(Forms.Screen screen, bool showImage, AppSettings settings)
@@ -389,7 +390,11 @@ internal sealed partial class LockWindow : Window
         UseLayoutRounding = true;
         Surface = new Grid { Background = Brushes.Black, ClipToBounds = true };
         Content = Surface;
-        if (showImage) BuildLockImage(settings);
+        if (showImage)
+        {
+            BuildLockImage(settings);
+            if (settings.ShowLunarScene && settings.TimeoutSeconds > 0) PrepareLunarScene();
+        }
         InitializeFunWindow();
 
         // El atajo de salida no se anuncia en la superficie.
@@ -408,7 +413,7 @@ internal sealed partial class LockWindow : Window
                 rect.X, rect.Y, rect.Width, rect.Height, 0x0040))
                 throw new Win32Exception(Marshal.GetLastWin32Error());
         };
-        Closed += delegate { if (timer != null) timer.Stop(); DisposeFunWindow(); };
+        Closed += delegate { if (timer != null) timer.Stop(); StopLunarScene(); DisposeFunWindow(); };
     }
 
     internal void Darken()
@@ -417,6 +422,7 @@ internal sealed partial class LockWindow : Window
         peekTimer.Stop();
         if (imageLayer != null) imageLayer.Visibility = Visibility.Collapsed;
         if (timer != null) timer.Stop();
+        ScheduleLunarScene();
     }
 
     private void BuildLockImage(AppSettings settings)

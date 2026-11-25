@@ -16,6 +16,10 @@ Abre el configurador desde el icono del área de notificación. Permite elegir l
 
 Los valores iniciales son una pantalla con fondo durante **20 segundos**, el resto en negro y un movimiento horizontal de **un píxel cada cinco minutos**, alternando sentidos mientras la simulación esté activa. Las pantallas se pintan de negro, sin apagarlas físicamente. La actividad periódica y la petición de energía se detienen al salir de la simulación.
 
+**Mostrar la orilla a la luz de la luna** activa la escena animada en el monitor elegido. Se funde desde negro después de **5 segundos en negro** de forma predeterminada. Puedes desactivar la escena o ajustar esa espera en segundos. Con 0 segundos de espera, el fundido comienza al pasar a negro. Si mantienes el fondo visible indefinidamente, la escena espera a que se produzca el paso a negro.
+
+El paisaje se incluye en el instalador. Los sprites se descargan desde SpriteCollab durante la primera activación y se guardan en la caché local para usos posteriores. Si la primera descarga no está disponible, el paisaje aparece igualmente.
+
 ## Atajos de teclado
 
 En **Configurar → Atajos de teclado** puedes elegir una combinación compartida para activar y salir, o una distinta para cada acción. Los cambios se aplican al guardar, sin reiniciar. Se mantiene el atajo inicial en instalaciones anteriores. Si una reserva está ocupada o falla el guardado, continúan funcionando los atajos anteriores.

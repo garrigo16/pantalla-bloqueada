@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml;
+using System.Xml.Serialization;
 
 internal sealed class TestInstallHost : IInstallHost
 {
@@ -71,6 +72,7 @@ internal static class PackageTests
                 new FileInfo(args[0]).Length == (long)initial.GetField("Size", BindingFlags.Static | BindingFlags.NonPublic).GetRawConstantValue(),
                 "El instalador inicial incorpora el tamaño y la huella exactos del paquete completo probado");
             var appAssembly = Assembly.LoadFile(Path.GetFullPath(args[1]));
+            Check(Resource(appAssembly, "LunarBackdrop.jpg").Length > 0, "El instalador incluye el paisaje de la orilla");
             Check(((AssemblyProductAttribute)Attribute.GetCustomAttribute(appAssembly, typeof(AssemblyProductAttribute))).Product == "Drifft Analyzer" &&
                 ((AssemblyTitleAttribute)Attribute.GetCustomAttribute(appAssembly, typeof(AssemblyTitleAttribute))).Title == "Drifft Analyzer",
                 "Windows muestra Drifft Analyzer como producto y descripción");
@@ -94,6 +96,21 @@ internal static class PackageTests
                 "El instalador incluye la activación por inactividad a los 300 segundos");
             Check(xml.SelectSingleNode("/AppSettings/Humor").InnerText == "Todos" && xml.SelectSingleNode("/AppSettings/WakeOnInput").InnerText == "true",
                 "El instalador incluye todos los easter eggs y el despertar breve");
+            Check(xml.SelectSingleNode("/AppSettings/ShowLunarScene").InnerText == "true" && xml.SelectSingleNode("/AppSettings/LunarDelaySeconds").InnerText == "5",
+                "La orilla queda activada con cinco segundos de espera");
+            var serializer = new XmlSerializer(typeof(AppSettings));
+            using (var old = new StringReader("<AppSettings><TimeoutSeconds>47</TimeoutSeconds></AppSettings>"))
+            {
+                var oldSettings = (AppSettings)serializer.Deserialize(old);
+                Check(oldSettings.ShowLunarScene && oldSettings.LunarDelaySeconds == 5 && oldSettings.TimeoutSeconds == 47,
+                    "Un XML anterior conserva el temporizador existente y adopta la nueva espera inicial");
+            }
+            using (var off = new StringReader("<AppSettings><ShowLunarScene>false</ShowLunarScene><LunarDelaySeconds>0</LunarDelaySeconds></AppSettings>"))
+            {
+                var configured = (AppSettings)serializer.Deserialize(off);
+                Check(!configured.ShowLunarScene && configured.LunarDelaySeconds == 0,
+                    "Se respetan la escena desactivada y la espera de cero segundos");
+            }
 
             xml.SelectSingleNode("/AppSettings/TimeoutSeconds").InnerText = "75";
             xml.Save(Path.Combine(target, "ajustes.xml"));

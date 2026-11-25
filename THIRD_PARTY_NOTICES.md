@@ -4,5 +4,6 @@
 - Godot Engine 4.7.2: licencia MIT incluida en `integration/Godot-LICENSE.txt` y en el paquete preparado del motor. Fuente y distribución: https://github.com/godotengine/godot-builds/releases/tag/4.7.2-stable.
 - Nunito: Copyright 2014 The Nunito Project Authors; SIL Open Font License 1.1 en `integration/godot/Nunito-OFL.txt`. Archivo de fuente original sin modificar, procedente de https://github.com/google/fonts/tree/main/ofl/nunito.
 - Noto Sans TC: avisos originales y licencia en `game/cat-pinball/fonts/LICENSE-NotoSansTC.txt`.
+- Orilla lunar: sprites originales de Chunsoft, consultados en tiempo de ejecución desde [PMDCollab/SpriteCollab](https://github.com/PMDCollab/SpriteCollab/tree/97494df8dfbb4ca74a243332ac3edf94e6dd95bf). Se aplica iluminación durante el render. Pokémon y sus personajes pertenecen a sus respectivos titulares.
 
 Integración, traducción y capa de presentación de Drifft Analyzer: Miquel Garrigo. Se conservan los créditos del juego en la portada.

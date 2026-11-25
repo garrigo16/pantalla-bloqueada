@@ -61,6 +61,8 @@ internal sealed class SettingsWindow : Window
     private readonly TextBox idleSeconds;
     private readonly ComboBox humorMode;
     private readonly CheckBox wakeOnInput;
+    private readonly CheckBox lunarScene;
+    private readonly TextBox lunarDelay;
     private readonly TextBlock timeoutHint, activityHint;
     private int titleClicks;
     private DateTime titleClicked;
@@ -132,6 +134,11 @@ internal sealed class SettingsWindow : Window
         <TextBox x:Name='timeout' Width='92' MaxLength='5'/><TextBlock Text='segundos' Margin='12,0,0,0' VerticalAlignment='Center'/>
       </StackPanel>
       <TextBlock x:Name='timeoutHint' Text='0 mantiene el fondo visible sin límite de tiempo.' Foreground='#A6B6D1' FontSize='14' Margin='0,8,0,23' TextWrapping='Wrap'/>
+      <CheckBox x:Name='lunarScene' Content='Mostrar la orilla a la luz de la luna'/>
+      <StackPanel Orientation='Horizontal' Margin='0,0,0,23'>
+        <TextBox x:Name='lunarDelay' AutomationProperties.Name='Espera en negro' Width='92' MaxLength='5'/>
+        <TextBlock Text='segundos en negro antes de que aparezca' Margin='12,0,0,0' VerticalAlignment='Center'/>
+      </StackPanel>
       <TextBlock Text='Fondo' FontWeight='SemiBold' Margin='0,0,0,9'/>
       <TextBlock x:Name='imageLabel' Foreground='#A6B6D1' TextTrimming='CharacterEllipsis' Margin='0,0,0,10'/>
       <StackPanel Orientation='Horizontal' Margin='0,0,0,24'>
@@ -198,6 +205,8 @@ internal sealed class SettingsWindow : Window
         idleSeconds = (TextBox)root.FindName("idleSeconds");
         humorMode = (ComboBox)root.FindName("humorMode");
         wakeOnInput = (CheckBox)root.FindName("wakeOnInput");
+        lunarScene = (CheckBox)root.FindName("lunarScene");
+        lunarDelay = (TextBox)root.FindName("lunarDelay");
         timeoutHint = (TextBlock)root.FindName("timeoutHint");
         activityHint = (TextBlock)root.FindName("activityHint");
         imageLabel = (TextBlock)root.FindName("imageLabel");
@@ -221,6 +230,11 @@ internal sealed class SettingsWindow : Window
         idleSeconds.IsEnabled = settings.AutoActivate;
         humorMode.SelectedIndex = (int)settings.Humor;
         wakeOnInput.IsChecked = settings.WakeOnInput;
+        lunarScene.IsChecked = settings.ShowLunarScene;
+        lunarDelay.Text = settings.LunarDelaySeconds.ToString(CultureInfo.InvariantCulture);
+        lunarDelay.IsEnabled = settings.ShowLunarScene;
+        lunarScene.Checked += delegate { lunarDelay.IsEnabled = true; };
+        lunarScene.Unchecked += delegate { lunarDelay.IsEnabled = false; };
         ((TextBlock)root.FindName("funStats")).Text = statistics == null ? "Los logros aparecerán después de una simulación." : statistics.Summary();
         autoActivate.Checked += delegate { idleSeconds.IsEnabled = true; };
         autoActivate.Unchecked += delegate { idleSeconds.IsEnabled = false; };
@@ -363,6 +377,18 @@ internal sealed class SettingsWindow : Window
             }
             idle = 300;
         }
+        int lunarSeconds;
+        if (!int.TryParse(lunarDelay.Text, out lunarSeconds) || lunarSeconds < 0 || lunarSeconds > 86400)
+        {
+            if (lunarScene.IsChecked == true)
+            {
+                error.Text = "La espera en negro para la orilla debe estar entre 0 y 86400 segundos.";
+                lunarDelay.BringIntoView();
+                lunarDelay.Focus();
+                return;
+            }
+            lunarSeconds = AppSettings.DefaultLunarDelay;
+        }
         try
         {
             var settings = new AppSettings
@@ -373,7 +399,8 @@ internal sealed class SettingsWindow : Window
                 SimulateActivity = simulateActivity.IsChecked == true, ActivityIntervalSeconds = interval,
                 AutoActivate = autoActivate.IsChecked == true, IdleSeconds = idle,
                 Humor = humorMode.SelectedIndex >= 0 ? (HumorMode)humorMode.SelectedIndex : HumorMode.Todos,
-                WakeOnInput = wakeOnInput.IsChecked == true
+                WakeOnInput = wakeOnInput.IsChecked == true,
+                ShowLunarScene = lunarScene.IsChecked == true, LunarDelaySeconds = lunarSeconds
             };
             bool desiredStartup = startup.IsChecked == true;
             shortcutOptions.ApplyTo(settings);

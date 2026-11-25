@@ -18,6 +18,9 @@ public sealed class AppSettings
     public int IdleSeconds { get; set; }
     public HumorMode Humor { get; set; }
     public bool WakeOnInput { get; set; }
+    internal const int DefaultLunarDelay = 5;
+    public bool ShowLunarScene { get; set; }
+    public int LunarDelaySeconds { get; set; }
     public int ActivateModifiers { get; set; }
     public int ActivateKey { get; set; }
     public bool SameHotkey { get; set; }
@@ -38,6 +41,8 @@ public sealed class AppSettings
         IdleSeconds = 300;
         Humor = HumorMode.Todos;
         WakeOnInput = true;
+        ShowLunarScene = true;
+        LunarDelaySeconds = DefaultLunarDelay;
         ActivateModifiers = UnlockModifiers = 8;
         ActivateKey = UnlockKey = 0;
         SameHotkey = true;
@@ -53,6 +58,7 @@ public sealed class AppSettings
                 if (settings.TimeoutSeconds < 0 || settings.TimeoutSeconds > 86400) settings.TimeoutSeconds = 20;
                 if (settings.ActivityIntervalSeconds < 15 || settings.ActivityIntervalSeconds > 600) settings.ActivityIntervalSeconds = 300;
                 if (settings.IdleSeconds < 1 || settings.IdleSeconds > 86400) settings.IdleSeconds = 300;
+                if (settings.LunarDelaySeconds < 0 || settings.LunarDelaySeconds > 86400) settings.LunarDelaySeconds = DefaultLunarDelay;
                 if (!Enum.IsDefined(typeof(HumorMode), settings.Humor)) settings.Humor = HumorMode.Todos;
                 settings.NormalizeShortcuts();
                 return settings;
