@@ -83,6 +83,12 @@ internal sealed class HotkeyRegistration : IDisposable
         return id == second ? ShortcutAction.Unlock : ShortcutAction.None;
     }
 
+    internal ShortcutAction ActionFor(HotkeyChord chord)
+    {
+        int id;
+        return bindings.TryGetValue(chord, out id) ? ActionFor(id) : ShortcutAction.None;
+    }
+
     internal sealed class Change : IDisposable
     {
         private readonly HotkeyRegistration owner;

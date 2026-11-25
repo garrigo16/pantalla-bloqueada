@@ -31,6 +31,34 @@ internal static class HotkeyTests
     { try { action(); } catch (ShortcutException) { Check(true, text); return; } throw new Exception("No se rechazó: " + text); }
     private static AppSettings Custom(int key, bool same)
     { return new AppSettings { ActivateModifiers = 3, ActivateKey = key, SameHotkey = same, UnlockModifiers = 3, UnlockKey = key + 1 }; }
+
+    private static void CheckSimulationFilter()
+    {
+        using (var manager = new HotkeyRegistration(new FakeHotkeyPlatform()))
+        {
+            using (var change = manager.Prepare(new AppSettings())) change.Commit();
+            var keys = new SimulationKeyRules(manager.ActionFor);
+            ShortcutAction action;
+            bool realLock;
+            Check(keys.Intercept(0x09, true, 5, out action, out realLock) && action == ShortcutAction.None
+                && keys.Intercept(0x09, false, 0, out action, out realLock), "Alt+Tab se consume incluso al soltar Alt antes de Tab");
+            Check(!keys.Intercept(0x09, true, 0, out action, out realLock), "Tab normal llega a la ventana");
+            Check(keys.Intercept(0x5b, true, 0, out action, out realLock) && action == ShortcutAction.None
+                && keys.Intercept(0x5b, false, 0, out action, out realLock), "Win solo no abre Inicio durante la simulación");
+            Check(!keys.Intercept(0x5b, false, 0, out action, out realLock), "Se conserva la liberación de Win pulsado antes de la simulación");
+            keys.Intercept(0x5b, true, 0, out action, out realLock);
+            Check(keys.Intercept(192, true, 0, out action, out realLock) && action == ShortcutAction.Toggle && !realLock,
+                "Win+Ñ del filtro utiliza la salida registrada");
+            Check(keys.Intercept(192, true, 0, out action, out realLock) && action == ShortcutAction.None, "La repetición de la tecla no activa dos veces");
+            keys.Intercept(192, false, 0, out action, out realLock);
+            Check(keys.Intercept(192, true, 4, out action, out realLock) && action == ShortcutAction.Game, "Win+Shift+Ñ abre el pinball por el mismo atajo");
+            Check(!keys.Intercept(0x2e, true, 3, out action, out realLock), "Ctrl+Alt+Supr sigue a cargo de Windows");
+            Check(keys.Intercept('L', true, 0, out action, out realLock) && realLock && action == ShortcutAction.None,
+                "Win+L conserva el bloqueo real de Windows");
+            keys.Reset();
+            Check(!keys.Intercept('A', true, 0, out action, out realLock), "Perder el foco retira el estado de teclas de la simulación");
+        }
+    }
     [STAThread]
     private static int Main()
     {
@@ -123,6 +151,7 @@ internal static class HotkeyTests
                 using (var change = manager.Prepare(Custom(0x77, true))) change.Commit();
                 Check(manager.IsRegistered, "Los atajos personalizados funcionan en teclados sin Ñ");
             }
+            CheckSimulationFilter();
             Console.WriteLine("Superadas " + checks + " comprobaciones de atajos."); return 0;
         }
         catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }

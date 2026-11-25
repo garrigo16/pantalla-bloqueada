@@ -28,6 +28,8 @@ El selector oculta las combinaciones que usa Windows. Al cargar ajustes antiguos
 
 El **pinball** se abre añadiendo **Shift al atajo de salida**. Shift queda reservado para esa función. Ninguna combinación de salida se muestra en las pantallas simuladas.
 
+Mientras la simulación tiene el foco, se filtran Alt + Tab y la tecla Win. Los atajos configurados tienen prioridad. Win + L sigue realizando el bloqueo real y Ctrl + Alt + Supr sigue a cargo de Windows.
+
 Si el teclado no tiene Ñ o una combinación no se puede registrar al arrancar, la app abre el configurador para elegir otra y mantiene desactivada la simulación hasta disponer de los atajos.
 
 ## Activación automática por inactividad

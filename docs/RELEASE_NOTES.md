@@ -1,6 +1,4 @@
-Drifft Analyzer 1.6.7 incorpora la orilla a la luz de la luna.
+Drifft Analyzer 1.6.8 muestra a Snorlax con píxeles más pequeños en la orilla lunar.
 
-- Tras pasar a negro, el monitor elegido muestra la escena con un fundido suave.
-- La escena se puede desactivar y la espera en negro se puede ajustar en el configurador. El valor inicial es de 5 segundos.
-- Snorlax, Pikachu y Eevee descansan junto al árbol. Los visitantes aparecen de uno en uno y Pikachu despierta brevemente cada 2 a 5 visitas.
-- El paisaje se incluye en el paquete. Los sprites se guardan en caché después de su primera descarga.
+- El sprite se dibuja a cuatro veces la resolución por eje. Su tamaño en la orilla y su animación de sueño se conservan.
+- Alt + Tab y la tecla Win se filtran mientras la simulación tiene el foco. Se conservan los atajos configurados, Win + L y Ctrl + Alt + Supr.

@@ -20,7 +20,7 @@ internal sealed class LunarScene : FrameworkElement, IDisposable
         internal double Meters, Size = 1, Offset;
         internal int StandingPixels;
         internal Point Position;
-        internal bool Flip;
+        internal bool Flip, FinePixels;
         internal Dictionary<LunarFrame, BitmapSource> StillImages;
     }
 
@@ -82,7 +82,7 @@ internal sealed class LunarScene : FrameworkElement, IDisposable
         IsHitTestVisible = false;
         RenderOptions.SetBitmapScalingMode(this, BitmapScalingMode.NearestNeighbor);
         sleepers = new[] {
-            Sleeper("0143", 40, 24, 2.1, 27, 105, 193, true, .85, 0),
+            Sleeper("0143", 40, 24, 2.1, 27, 105, 193, true, .85, 0, finePixels: true),
             Sleeper("0025", 32, 40, .4, 25, 124, 200, false, 1, 0),
             Sleeper("0133", 32, 24, .3, 18, 142, 200, true, 1, 550)
         };
@@ -103,10 +103,11 @@ internal sealed class LunarScene : FrameworkElement, IDisposable
     }
 
     private static Actor Sleeper(string id, int width, int height, double meters, int standingPixels,
-        double x, double y, bool flip, double size, double offset)
+        double x, double y, bool flip, double size, double offset, bool finePixels = false)
     {
         return new Actor { Clip = new LunarClip(id, "Sleep", width, height, 30, 35), Meters = meters,
             StandingPixels = standingPixels, Position = new Point(x, y), Flip = flip, Size = size, Offset = offset,
+            FinePixels = finePixels,
             StillImages = new Dictionary<LunarFrame, BitmapSource>() };
     }
 
@@ -276,7 +277,7 @@ internal sealed class LunarScene : FrameworkElement, IDisposable
         BitmapSource bitmap;
         if (actor.StillImages == null || !actor.StillImages.TryGetValue(pose, out bitmap))
         {
-            bitmap = ApplyMoonlight(pose, point, actor.Flip);
+            bitmap = ApplyMoonlight(pose, point, actor.Flip, actor.FinePixels);
             if (actor.StillImages != null) actor.StillImages.Add(pose, bitmap);
         }
         if (actor.Flip) dc.PushTransform(new ScaleTransform(-1, 1, x, y));
@@ -285,30 +286,97 @@ internal sealed class LunarScene : FrameworkElement, IDisposable
         if (actor.Flip) dc.Pop();
     }
 
-    private static BitmapSource ApplyMoonlight(LunarFrame pose, Point point, bool flip)
+    private static BitmapSource ApplyMoonlight(LunarFrame pose, Point point, bool flip, bool finePixels)
     {
         double dx = 260 - point.X, dy = 63 - point.Y;
         double fromReflection = dx / 103, fromWater = (point.Y - 193) / 64;
         double light = Math.Exp(-(fromReflection * fromReflection + fromWater * fromWater));
         double fromSide = (flip ? -1 : 1) * dx / Math.Sqrt(dx * dx + dy * dy);
-        var pixels = (byte[])pose.Pixels.Clone();
+        int factor = finePixels ? 4 : 1;
+        int width = pose.Width * factor, height = pose.Height * factor;
+        var pixels = finePixels ? RefinePixels(pose) : (byte[])pose.Pixels.Clone();
         for (int i = 0; i < pixels.Length; i += 4)
         {
             if (pixels[i + 3] == 0) continue;
-            int column = i / 4 % pose.Width, row = i / 4 / pose.Width;
-            double highlight = light * (.65 + .35 * (1 - (double)row / pose.Bottom) + .35 * fromSide * (column - pose.Center) / pose.Width);
+            double column = (double)(i / 4 % width) / factor, row = (double)(i / 4 / width) / factor;
+            double highlight = light * (.65 + .35 * (1 - row / pose.Bottom) + .35 * fromSide * (column - pose.Center) / pose.Width);
             double red = pixels[i + 2], green = pixels[i + 1], blue = pixels[i];
             double luminance = .213 * red + .715 * green + .072 * blue;
             pixels[i + 2] = Channel(red * (.50 + .29 * highlight) + luminance * .10 * highlight + 5);
             pixels[i + 1] = Channel(green * (.56 + .27 * highlight) + luminance * (.05 + .10 * highlight) + 9);
             pixels[i] = Channel(blue * (.68 + .23 * highlight) + luminance * (.16 + .19 * highlight) + 15);
         }
-        var bitmap = BitmapSource.Create(pose.Width, pose.Height, 96, 96, PixelFormats.Bgra32, null, pixels, pose.Width * 4);
+        var bitmap = BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgra32, null, pixels, width * 4);
         bitmap.Freeze();
         return bitmap;
     }
 
     private static byte Channel(double value) { return (byte)Math.Max(0, Math.Min(255, Math.Round(value))); }
+
+    private static byte[] RefinePixels(LunarFrame pose)
+    {
+        var source = new uint[pose.Width * pose.Height];
+        Buffer.BlockCopy(pose.Pixels, 0, source, 0, pose.Pixels.Length);
+        for (int i = 0; i < source.Length; i++)
+            if ((source[i] >> 24) == 0) source[i] = 0;
+        var doubled = Scale2x(source, pose.Width, pose.Height);
+        var enlarged = Scale2x(doubled, pose.Width * 2, pose.Height * 2);
+        int width = pose.Width * 4, height = pose.Height * 4;
+        var tones = RefineTones(RefineTones(enlarged, width, height), width, height);
+        var pixels = new byte[tones.Length * sizeof(uint)];
+        Buffer.BlockCopy(tones, 0, pixels, 0, pixels.Length);
+        return pixels;
+    }
+
+    // Add smaller steps between similar interior tones. Keep the outline and transparency sharp.
+    private static uint[] RefineTones(uint[] source, int width, int height)
+    {
+        var result = (uint[])source.Clone();
+        int[] nearby = { -width, -1, 1, width };
+        for (int y = 1; y < height - 1; y++)
+            for (int x = 1; x < width - 1; x++)
+            {
+                int i = y * width + x;
+                uint pixel = source[i];
+                if ((pixel >> 24) != 255) continue;
+                int blue = (int)(pixel & 255), green = (int)((pixel >> 8) & 255), red = (int)((pixel >> 16) & 255);
+                int sumBlue = 4 * blue, sumGreen = 4 * green, sumRed = 4 * red, weight = 4;
+                foreach (int offset in nearby)
+                {
+                    uint neighbour = source[i + offset];
+                    if ((neighbour >> 24) != 255) continue;
+                    int b = (int)(neighbour & 255), g = (int)((neighbour >> 8) & 255), r = (int)((neighbour >> 16) & 255);
+                    if (Math.Abs(blue - b) + Math.Abs(green - g) + Math.Abs(red - r) > 105) continue;
+                    sumBlue += b; sumGreen += g; sumRed += r; weight++;
+                }
+                result[i] = 0xff000000u | ((uint)(sumRed / weight) << 16) | ((uint)(sumGreen / weight) << 8) | (uint)(sumBlue / weight);
+            }
+        return result;
+    }
+
+    // Scale2x follows adjacent contours without blending neighbouring colours. https://www.scale2x.it/algorithm
+    private static uint[] Scale2x(uint[] source, int width, int height)
+    {
+        int stride = width * 2;
+        var enlarged = new uint[stride * height * 2];
+        for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+            {
+                int i = y * width + x;
+                uint center = source[i];
+                uint above = y == 0 ? center : source[i - width];
+                uint below = y == height - 1 ? center : source[i + width];
+                uint left = x == 0 ? center : source[i - 1];
+                uint right = x == width - 1 ? center : source[i + 1];
+                int p = 2 * y * stride + 2 * x;
+                bool corner = above != below && left != right;
+                enlarged[p] = corner && left == above ? left : center;
+                enlarged[p + 1] = corner && above == right ? right : center;
+                enlarged[p + stride] = corner && left == below ? left : center;
+                enlarged[p + stride + 1] = corner && below == right ? right : center;
+            }
+        return enlarged;
+    }
 
     public void Dispose()
     {

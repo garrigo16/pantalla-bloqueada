@@ -215,12 +215,17 @@ internal sealed partial class LockController : IDisposable
         {
             var action = hotkeys.ActionFor(wParam.ToInt32());
             handled = action != ShortcutAction.None;
-            if (action == ShortcutAction.Toggle) Toggle();
-            else if (action == ShortcutAction.Activate) Show();
-            else if (action == ShortcutAction.Unlock) Hide();
-            else if (action == ShortcutAction.Game) OpenPinball();
+            HandleShortcut(action);
         }
         return IntPtr.Zero;
+    }
+
+    private void HandleShortcut(ShortcutAction action)
+    {
+        if (action == ShortcutAction.Toggle) Toggle();
+        else if (action == ShortcutAction.Activate) Show();
+        else if (action == ShortcutAction.Unlock) Hide();
+        else if (action == ShortcutAction.Game) OpenPinball();
     }
 
     internal void Toggle()
@@ -255,6 +260,7 @@ internal sealed partial class LockController : IDisposable
                 if (screen.DeviceName != selected.DeviceName) AddWindow(screen, false);
             AddWindow(selected, true);
             windows[windows.Count - 1].Activate();
+            StartSimulationKeyboard();
             elapsed.Restart();
             if (settings.SimulateActivity)
             {
@@ -325,6 +331,7 @@ internal sealed partial class LockController : IDisposable
         closing = true;
         try
         {
+            StopSimulationKeyboard();
             blackout.Stop();
             activityTimer.Stop();
             elapsed.Reset();
