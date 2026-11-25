@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
+using System.Windows.Input;
 
 internal sealed class FakeHotkeyPlatform : IHotkeyPlatform
 {
@@ -59,11 +60,37 @@ internal static class HotkeyTests
             Check(!keys.Intercept('A', true, 0, out action, out realLock), "Perder el foco retira el estado de teclas de la simulación");
         }
     }
+    private static void CheckPokemonPinball()
+    {
+        Check(PinballNativeHost.PokemonInput(Key.LeftCtrl) == Key.Z && PinballNativeHost.PokemonInput(Key.RightCtrl) == Key.X &&
+            PinballNativeHost.PokemonInput(Key.Space) == Key.Space && PinballNativeHost.PokemonInput(Key.F11) == Key.None,
+            "Pinball NS conserva los dos Ctrl y Espacio dentro de la ventana de la simulación");
+
+        try { PinballNsPayload.ValidateRom(""); throw new Exception("Se aceptó una ROM vacía."); }
+        catch (IOException ex) { Check(ex.Message.Contains("Configurar"), "Pinball NS indica dónde seleccionar el archivo si falta"); }
+        string fixture = Path.GetTempFileName();
+        try
+        {
+            File.WriteAllText(fixture, "Archivo de prueba");
+            try { PinballNsPayload.ValidateRom(fixture); throw new Exception("Se aceptó un archivo incompatible."); }
+            catch (IOException ex) { Check(ex.Message.Contains("no es compatible"), "Pinball NS rechaza un archivo incompatible antes de descargar"); }
+            using (var zip = new MemoryStream(new byte[264649]))
+            {
+                try { PinballNsPayload.Unpack(zip, fixture); throw new Exception("Se aceptó un ZIP adulterado."); }
+                catch (IOException)
+                {
+                    Check(File.ReadAllText(fixture) == "Archivo de prueba", "Un ZIP con tamaño correcto y huella inválida no sustituye el ejecutable");
+                }
+            }
+        }
+        finally { File.Delete(fixture); }
+    }
     [STAThread]
     private static int Main()
     {
         try
         {
+            CheckPokemonPinball();
             var serializer = new XmlSerializer(typeof(AppSettings));
             AppSettings old;
             using (var input = new StringReader("<AppSettings><TimeoutSeconds>73</TimeoutSeconds><ShowClock>false</ShowClock></AppSettings>")) old = (AppSettings)serializer.Deserialize(input);

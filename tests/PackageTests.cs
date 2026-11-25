@@ -96,20 +96,25 @@ internal static class PackageTests
                 "El instalador incluye la activación por inactividad a los 300 segundos");
             Check(xml.SelectSingleNode("/AppSettings/Humor").InnerText == "Todos" && xml.SelectSingleNode("/AppSettings/WakeOnInput").InnerText == "true",
                 "El instalador incluye todos los easter eggs y el despertar breve");
-            Check(xml.SelectSingleNode("/AppSettings/ShowLunarScene").InnerText == "true" && xml.SelectSingleNode("/AppSettings/LunarDelaySeconds").InnerText == "5",
-                "La orilla queda activada con cinco segundos de espera");
+            Check(xml.SelectSingleNode("/AppSettings/Theme").InnerText == "Clasico" &&
+                xml.SelectSingleNode("/AppSettings/LunarDelaySeconds").InnerText == "5" &&
+                xml.SelectSingleNode("/AppSettings/PokemonRomPath").InnerText == "",
+                "El instalador parte de Clásico y conserva la espera inicial de cinco segundos para Pokémon");
             var serializer = new XmlSerializer(typeof(AppSettings));
-            using (var old = new StringReader("<AppSettings><TimeoutSeconds>47</TimeoutSeconds></AppSettings>"))
+            using (var old = new StringReader("<AppSettings><ShowLunarScene>true</ShowLunarScene><TimeoutSeconds>47</TimeoutSeconds><LunarDelaySeconds>11</LunarDelaySeconds></AppSettings>"))
             {
-                var oldSettings = (AppSettings)serializer.Deserialize(old);
-                Check(oldSettings.ShowLunarScene && oldSettings.LunarDelaySeconds == 5 && oldSettings.TimeoutSeconds == 47,
-                    "Un XML anterior conserva el temporizador existente y adopta la nueva espera inicial");
+                var previous = (AppSettings)serializer.Deserialize(old);
+                Check(previous.Theme == AppTheme.Clasico && previous.LunarDelaySeconds == 11 && previous.TimeoutSeconds == 47,
+                    "El antiguo interruptor da paso al tema Clásico y se conservan ambos tiempos");
             }
-            using (var off = new StringReader("<AppSettings><ShowLunarScene>false</ShowLunarScene><LunarDelaySeconds>0</LunarDelaySeconds></AppSettings>"))
+            using (var output = new MemoryStream())
             {
-                var configured = (AppSettings)serializer.Deserialize(off);
-                Check(!configured.ShowLunarScene && configured.LunarDelaySeconds == 0,
-                    "Se respetan la escena desactivada y la espera de cero segundos");
+                var configured = new AppSettings { Theme = AppTheme.Pokemon, LunarDelaySeconds = 0, PokemonRomPath = @"C:\Juegos privados\Mi cartucho.gbc" };
+                serializer.Serialize(output, configured);
+                output.Position = 0;
+                var restored = (AppSettings)serializer.Deserialize(output);
+                Check(restored.Theme == AppTheme.Pokemon && restored.LunarDelaySeconds == 0 && restored.PokemonRomPath == configured.PokemonRomPath,
+                    "Se guardan el tema Pokémon, la espera de cero segundos y la ruta local seleccionada");
             }
 
             xml.SelectSingleNode("/AppSettings/TimeoutSeconds").InnerText = "75";

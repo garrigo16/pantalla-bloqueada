@@ -16,7 +16,7 @@ Abre el configurador desde el icono del área de notificación. Permite elegir l
 
 Los valores iniciales son una pantalla con fondo durante **20 segundos**, el resto en negro y un movimiento horizontal de **un píxel cada cinco minutos**, alternando sentidos mientras la simulación esté activa. Las pantallas se pintan de negro, sin apagarlas físicamente. La actividad periódica y la petición de energía se detienen al salir de la simulación.
 
-**Mostrar la orilla a la luz de la luna** activa la escena animada en el monitor elegido. Se funde desde negro después de **5 segundos en negro** de forma predeterminada. Puedes desactivar la escena o ajustar esa espera en segundos. Con 0 segundos de espera, el fundido comienza al pasar a negro. Si mantienes el fondo visible indefinidamente, la escena espera a que se produzca el paso a negro.
+**Tema** permite alternar entre **Clásico**, el predeterminado con el fondo habitual, los easter eggs y el pinball de gatos, y **Pokémon**, con el claro animado y Pinball NS. En Pokémon, el claro aparece en el monitor elegido con un fundido tras **5 segundos en negro**. Puedes cambiar la espera. Con 0 segundos, empieza al pasar a negro. Si mantienes el fondo visible indefinidamente, el claro no aparece.
 
 El paisaje se incluye en el instalador. Los sprites se descargan desde SpriteCollab durante la primera activación y se guardan en la caché local para usos posteriores. Si la primera descarga no está disponible, el paisaje aparece igualmente.
 
@@ -26,7 +26,7 @@ En **Configurar → Atajos de teclado** puedes elegir una combinación compartid
 
 El selector oculta las combinaciones que usa Windows. Al cargar ajustes antiguos, la app retira Shift de los atajos configurados y recupera **Win + Ñ** si una combinación deja de estar disponible.
 
-El **pinball** se abre añadiendo **Shift al atajo de salida**. Shift queda reservado para esa función. Ninguna combinación de salida se muestra en las pantallas simuladas.
+El **pinball del tema seleccionado** se abre añadiendo **Shift al atajo de salida**. Shift queda reservado para esa función. Ninguna combinación de salida se muestra en las pantallas simuladas.
 
 Mientras la simulación tiene el foco, se filtran Alt + Tab y la tecla Win. Los atajos configurados tienen prioridad. Win + L sigue realizando el bloqueo real y Ctrl + Alt + Supr sigue a cargo de Windows.
 
@@ -64,6 +64,12 @@ La campaña y la interfaz están traducidas al español de España. Durante la h
 El atajo de salida conserva la prioridad durante la partida. Solo aparece en la pantalla elegida y las demás siguen negras. El juego no tiene sonido y termina su proceso al salir; también vuelve a la simulación tras un minuto sin interacción. El proceso de Godot queda vinculado a Drifft Analyzer para cerrarse si la app termina inesperadamente.
 
 El juego completo está incluido en el repositorio y en los instaladores, con los créditos originales conservados. [Detalles de integración](docs/CAT_PINBALL.md) y [avisos de terceros](THIRD_PARTY_NOTICES.md).
+
+## Pinball NS
+
+En **Configurar → Tema → Pokémon**, elige la ROM de tu cartucho de Pokémon Pinball USA/Australia con vibración. También se admite una ROM de Pokémon Pinball Generations 1.6. El claro está disponible aunque dejes vacío ese ajuste.
+
+La primera partida descarga y verifica [Pinball NS 2.9 para Windows](https://github.com/ReiniShari/Pinball-NS/releases/tag/v2.9). La aplicación usa la ROM desde su ubicación original. Pinball NS guarda la partida junto a ella. **Ctrl izquierdo y Ctrl derecho** accionan las palancas, **Espacio** lanza, **P** pausa y **Esc** vuelve a la simulación.
 
 ## Compilar y comprobar
 

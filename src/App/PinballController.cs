@@ -16,7 +16,7 @@ internal sealed partial class LockController
     private void FunKeyUp(object sender, KeyEventArgs e)
     {
         var target = FunWindow();
-        if (target != null && target.HasPinball && (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl || e.Key == Key.Space))
+        if (target != null && target.HasPinball && (!Modifier(e.Key) || e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl))
         { target.PinballInput(e.Key, false, false); e.Handled = true; }
     }
 }
@@ -30,7 +30,7 @@ internal sealed partial class LockWindow
     {
         if (!HasImage || pinball != null) return;
         if (funOverlay != null) funOverlay.Clear();
-        pinball = new PinballGame(Surface, delegate
+        pinball = new PinballGame(Surface, preferences, delegate
         {
             pinball = null;
             if (lunarScene != null && lunarScene.IsVisible) lunarScene.SetRunning(true);

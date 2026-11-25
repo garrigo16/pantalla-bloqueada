@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
@@ -10,7 +12,9 @@ using System.Windows.Interop;
 // Autor: Miquel Garrigo
 internal sealed class PinballNativeHost : HwndHost
 {
-    private readonly PinballPayload payload;
+    private readonly Func<IntPtr, ProcessStartInfo> startInfo;
+    private readonly string statusPath;
+    private readonly bool pokemon;
     private IntPtr handle, child, job;
     private int childWidth, childHeight;
     private Process process;
@@ -29,17 +33,21 @@ internal sealed class PinballNativeHost : HwndHost
         return hwnd != IntPtr.Zero && GetWindowRect(hwnd, out bounds)
             ? new Rect(bounds.Left, bounds.Top, bounds.Right - bounds.Left, bounds.Bottom - bounds.Top) : Rect.Empty;
     }
-    internal PinballNativeHost(PinballPayload files) { payload = files; }
+    internal PinballNativeHost(PinballPayload files)
+    {
+        startInfo = delegate(IntPtr parent) { return CatStartInfo(files, parent); };
+        statusPath = files.Status;
+    }
+    internal PinballNativeHost(PinballNsPayload files)
+    {
+        startInfo = delegate { return files.StartInfo(); };
+        pokemon = true;
+        Focusable = false;
+    }
     protected override HandleRef BuildWindowCore(HandleRef parent)
     {
         handle = CreateWindowEx(0, "static", "", 0x56000004, 0, 0, 440, 860, parent.Handle, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
         if (handle == IntPtr.Zero) throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
-        string log = Path.ChangeExtension(payload.Status, ".log");
-        var info = new ProcessStartInfo(payload.Engine,
-            "--main-pack \"" + payload.Pack + "\" --wid " + handle.ToInt64().ToString(CultureInfo.InvariantCulture) +
-            " --windowed --resolution 440x860 --position 0,0 --single-window --accessibility disabled --audio-driver Dummy --log-file \"" + log +
-            "\" -- --drifft-status \"" + payload.Status + "\"")
-        { UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, WorkingDirectory = Path.GetDirectoryName(payload.Pack) };
         try
         {
             job = CreateJobObject(IntPtr.Zero, null);
@@ -47,11 +55,21 @@ internal sealed class PinballNativeHost : HwndHost
             var limits = new JobLimits(); limits.Basic.Flags = 0x2000;
             if (!SetInformationJobObject(job, 9, ref limits, (uint)Marshal.SizeOf(typeof(JobLimits))))
                 throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
-            process = Process.Start(info);
+            process = Process.Start(startInfo(handle));
             if (!AssignProcessToJobObject(job, process.Handle)) throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
         }
         catch (Exception ex) { Stop(); StartupError = ex.Message; }
         return new HandleRef(this, handle);
+    }
+    private static ProcessStartInfo CatStartInfo(PinballPayload payload, IntPtr parent)
+    {
+        string log = Path.ChangeExtension(payload.Status, ".log");
+        return new ProcessStartInfo(payload.Engine,
+            "--main-pack \"" + payload.Pack + "\" --wid " + parent.ToInt64().ToString(CultureInfo.InvariantCulture) +
+            " --windowed --resolution 440x860 --position 0,0 --single-window --accessibility disabled --audio-driver Dummy --log-file \"" + log +
+            "\" -- --drifft-status \"" + payload.Status + "\"")
+        { UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, WorkingDirectory = Path.GetDirectoryName(payload.Pack) };
+
     }
     internal void Poll()
     {
@@ -64,18 +82,24 @@ internal sealed class PinballNativeHost : HwndHost
                 EnumWindows(delegate(IntPtr candidate, IntPtr ignored)
                 {
                     uint pid; GetWindowThreadProcessId(candidate, out pid);
-                    if (pid != process.Id) return true;
+                    if (pid != process.Id || (pokemon && !IsPinballNsWindow(candidate))) return true;
                     child = candidate; return false;
                 }, IntPtr.Zero);
                 if (child != IntPtr.Zero)
                 {
                     long style = GetStyle(child).ToInt64();
-                    SetStyle(child, new IntPtr((style & ~0x80c40000L) | 0x56000000L));
+                    long embeddedStyle = (style & ~0x80c40000L) | 0x56000000L;
+                    if (pokemon) embeddedStyle |= 0x08000000L; // El teclado permanece en la ventana de simulación.
+                    SetStyle(child, new IntPtr(embeddedStyle));
                     SetParent(child, handle);
                     if (GetParent(child) != handle) { child = IntPtr.Zero; return; }
                 }
             }
-            if (child != IntPtr.Zero) { ShowWindow(child, 5); SetFocus(child); }
+            if (child != IntPtr.Zero)
+            {
+                ShowWindow(child, pokemon ? 4 : 5);
+                if (!pokemon) SetFocus(child);
+            }
         }
         if (child != IntPtr.Zero)
         {
@@ -93,6 +117,8 @@ internal sealed class PinballNativeHost : HwndHost
     internal void Forward(Key key, bool down, bool repeat)
     {
         if (child == IntPtr.Zero || stopping) return;
+        if (pokemon) key = PokemonInput(key);
+        if (key == Key.None) return;
         int vk = KeyInterop.VirtualKeyFromKey(key), scan = (int)MapVirtualKey((uint)vk, 0);
         if (key == Key.LeftCtrl || key == Key.RightCtrl) { vk = 0x11; scan = 0x1d; }
         long flags = 1 | ((long)scan << 16);
@@ -101,16 +127,53 @@ internal sealed class PinballNativeHost : HwndHost
         if (!down) flags |= 1L << 31;
         PostMessage(child, down ? 0x0100u : 0x0101u, new IntPtr(vk), new IntPtr(flags));
     }
+    internal static Key PokemonInput(Key key)
+    {
+        switch (key)
+        {
+            case Key.LeftCtrl: return Key.Z;
+            case Key.RightCtrl: return Key.X;
+            case Key.Space: case Key.Enter: case Key.P: case Key.Up: case Key.Down: case Key.Left:
+            case Key.Right: case Key.C: case Key.V: case Key.T: case Key.Back: case Key.Tab:
+            case Key.F5: case Key.F8: case Key.F9: case Key.F10: return key;
+            default: return Key.None;
+        }
+    }
+    private static bool IsPinballNsWindow(IntPtr hwnd)
+    {
+        var name = new StringBuilder(32);
+        GetClassName(hwnd, name, name.Capacity);
+        return name.ToString() == "PinballNS";
+    }
     internal void Stop()
     {
         if (stopping) return; stopping = true;
-        if (process != null)
+        Process current = process;
+        IntPtr currentJob = job;
+        process = null;
+        job = IntPtr.Zero;
+        if (pokemon && child != IntPtr.Zero && current != null &&
+            PostMessage(child, 0x0010, IntPtr.Zero, IntPtr.Zero))
         {
-            try { if (!process.HasExited) process.Kill(); } catch (InvalidOperationException) { } catch (System.ComponentModel.Win32Exception) { }
-            process.Dispose(); process = null;
+            // Pinball NS guarda la partida al cerrar. El juego tiene un margen breve sin bloquear la interfaz.
+            Task.Run(delegate { StopProcess(current, currentJob, 1000); });
         }
-        if (job != IntPtr.Zero) { CloseHandle(job); job = IntPtr.Zero; }
-        try { if (File.Exists(payload.Status)) File.Delete(payload.Status); } catch (IOException) { }
+        else StopProcess(current, currentJob, 0);
+        try { if (File.Exists(statusPath)) File.Delete(statusPath); } catch (IOException) { }
+    }
+    private static void StopProcess(Process current, IntPtr currentJob, int gracefulMilliseconds)
+    {
+        try
+        {
+            if (current != null && !current.WaitForExit(gracefulMilliseconds)) current.Kill();
+        }
+        catch (InvalidOperationException) { }
+        catch (System.ComponentModel.Win32Exception) { }
+        finally
+        {
+            if (current != null) current.Dispose();
+            if (currentJob != IntPtr.Zero) CloseHandle(currentJob);
+        }
     }
     protected override void DestroyWindowCore(HandleRef hwnd) { Stop(); DestroyWindow(hwnd.Handle); handle = child = IntPtr.Zero; }
     [StructLayout(LayoutKind.Sequential)] private struct RectI { internal int Left, Top, Right, Bottom; }
@@ -127,6 +190,7 @@ internal sealed class PinballNativeHost : HwndHost
     [DllImport("kernel32.dll", SetLastError = true)] private static extern bool AssignProcessToJobObject(IntPtr job, IntPtr process);
     [DllImport("kernel32.dll")] private static extern bool CloseHandle(IntPtr handle);
     [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)] private static extern IntPtr CreateWindowEx(int ex, string cls, string title, int style, int x, int y, int w, int h, IntPtr parent, IntPtr menu, IntPtr instance, IntPtr parameter);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetClassName(IntPtr hwnd, StringBuilder name, int length);
     [DllImport("user32.dll")] private static extern bool DestroyWindow(IntPtr hwnd);
     [DllImport("user32.dll")] private static extern IntPtr GetWindow(IntPtr hwnd, uint command);
     [DllImport("user32.dll")] private static extern bool GetClientRect(IntPtr hwnd, out RectI rectangle);

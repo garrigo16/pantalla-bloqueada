@@ -19,7 +19,7 @@ internal sealed class PinballPayload
     internal static bool Available { get { return Assembly.GetExecutingAssembly().GetManifestResourceInfo("CatPinball.pck") != null; } }
     internal static string Hash(Stream input)
     { using (var sha = SHA256.Create()) return BitConverter.ToString(sha.ComputeHash(input)).Replace("-", "").ToLowerInvariant(); }
-    private static bool Matches(string path, string expected)
+    internal static bool Matches(string path, string expected)
     {
         if (!File.Exists(path)) return false;
         if ((File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0) throw new IOException("La caché del juego no puede contener enlaces.");
@@ -60,7 +60,7 @@ internal sealed class PinballPayload
         }
         return result;
     }
-    private static void Save(string path, Stream content, string hash)
+    internal static void Save(string path, Stream content, string hash)
     {
         string temp = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try

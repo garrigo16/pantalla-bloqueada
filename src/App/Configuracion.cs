@@ -61,7 +61,8 @@ internal sealed class SettingsWindow : Window
     private readonly TextBox idleSeconds;
     private readonly ComboBox humorMode;
     private readonly CheckBox wakeOnInput;
-    private readonly CheckBox lunarScene;
+    private readonly ComboBox theme;
+    private readonly TextBlock romLabel;
     private readonly TextBox lunarDelay;
     private readonly TextBlock timeoutHint, activityHint;
     private int titleClicks;
@@ -76,7 +77,7 @@ internal sealed class SettingsWindow : Window
     private readonly ShortcutOptions shortcutOptions;
     private readonly Expander shortcutExpander;
     private readonly Action<AppSettings, bool> savePreferences;
-    private string imagePath;
+    private string imagePath, pokemonRomPath;
 
     internal SettingsWindow(AppSettings settings, UpdateManager updateManager = null, FunStats statistics = null, Action<AppSettings, bool> saveSettings = null)
     {
@@ -134,10 +135,21 @@ internal sealed class SettingsWindow : Window
         <TextBox x:Name='timeout' Width='92' MaxLength='5'/><TextBlock Text='segundos' Margin='12,0,0,0' VerticalAlignment='Center'/>
       </StackPanel>
       <TextBlock x:Name='timeoutHint' Text='0 mantiene el fondo visible sin límite de tiempo.' Foreground='#A6B6D1' FontSize='14' Margin='0,8,0,23' TextWrapping='Wrap'/>
-      <CheckBox x:Name='lunarScene' Content='Mostrar la orilla a la luz de la luna'/>
-      <StackPanel Orientation='Horizontal' Margin='0,0,0,23'>
-        <TextBox x:Name='lunarDelay' AutomationProperties.Name='Espera en negro' Width='92' MaxLength='5'/>
-        <TextBlock Text='segundos en negro antes de que aparezca' Margin='12,0,0,0' VerticalAlignment='Center'/>
+      <TextBlock Text='Tema' FontWeight='SemiBold' Margin='0,0,0,9'/>
+      <ComboBox x:Name='theme' AutomationProperties.Name='Tema' MinHeight='40' Padding='8,6' Foreground='#101728' Margin='0,0,0,20'>
+        <ComboBoxItem Content='Clásico'/><ComboBoxItem Content='Pokémon'/>
+      </ComboBox>
+      <StackPanel x:Name='pokemonOptions' Margin='0,-9,0,23'>
+        <StackPanel Orientation='Horizontal'>
+          <TextBox x:Name='lunarDelay' AutomationProperties.Name='Espera en negro' Width='92' MaxLength='5'/>
+          <TextBlock Text='segundos en negro antes del claro' Margin='12,0,0,0' VerticalAlignment='Center'/>
+        </StackPanel>
+        <TextBlock x:Name='romLabel' Foreground='#A6B6D1' Margin='0,12,0,9' TextTrimming='CharacterEllipsis'/>
+        <WrapPanel>
+          <Button x:Name='selectRom' Content='Elegir archivo del juego…'/>
+          <Button x:Name='resetRom' Content='Quitar' Margin='10,0,0,0'/>
+        </WrapPanel>
+        <TextBlock Text='Elige la ROM de tu cartucho USA/Australia con vibración o de Pokémon Pinball Generations 1.6. Pinball NS se descarga la primera vez.' Foreground='#A6B6D1' FontSize='14' Margin='0,8,0,0' TextWrapping='Wrap'/>
       </StackPanel>
       <TextBlock Text='Fondo' FontWeight='SemiBold' Margin='0,0,0,9'/>
       <TextBlock x:Name='imageLabel' Foreground='#A6B6D1' TextTrimming='CharacterEllipsis' Margin='0,0,0,10'/>
@@ -205,7 +217,8 @@ internal sealed class SettingsWindow : Window
         idleSeconds = (TextBox)root.FindName("idleSeconds");
         humorMode = (ComboBox)root.FindName("humorMode");
         wakeOnInput = (CheckBox)root.FindName("wakeOnInput");
-        lunarScene = (CheckBox)root.FindName("lunarScene");
+        theme = (ComboBox)root.FindName("theme");
+        romLabel = (TextBlock)root.FindName("romLabel");
         lunarDelay = (TextBox)root.FindName("lunarDelay");
         timeoutHint = (TextBlock)root.FindName("timeoutHint");
         activityHint = (TextBlock)root.FindName("activityHint");
@@ -230,11 +243,43 @@ internal sealed class SettingsWindow : Window
         idleSeconds.IsEnabled = settings.AutoActivate;
         humorMode.SelectedIndex = (int)settings.Humor;
         wakeOnInput.IsChecked = settings.WakeOnInput;
-        lunarScene.IsChecked = settings.ShowLunarScene;
+        theme.SelectedIndex = (int)settings.Theme;
+        var pokemonOptions = (StackPanel)root.FindName("pokemonOptions");
+        Action showPokemonOptions = delegate
+        {
+            pokemonOptions.Visibility = theme.SelectedIndex == (int)AppTheme.Pokemon ? Visibility.Visible : Visibility.Collapsed;
+        };
+        theme.SelectionChanged += delegate { showPokemonOptions(); };
+        showPokemonOptions();
         lunarDelay.Text = settings.LunarDelaySeconds.ToString(CultureInfo.InvariantCulture);
-        lunarDelay.IsEnabled = settings.ShowLunarScene;
-        lunarScene.Checked += delegate { lunarDelay.IsEnabled = true; };
-        lunarScene.Unchecked += delegate { lunarDelay.IsEnabled = false; };
+        pokemonRomPath = settings.PokemonRomPath ?? "";
+        var resetRom = (Button)root.FindName("resetRom");
+        Action refreshRom = delegate
+        {
+            romLabel.Text = pokemonRomPath.Length == 0 ? "Archivo del juego pendiente" : Path.GetFileName(pokemonRomPath);
+            romLabel.ToolTip = pokemonRomPath;
+            resetRom.IsEnabled = pokemonRomPath.Length != 0;
+        };
+        refreshRom();
+        resetRom.Click += delegate { pokemonRomPath = ""; refreshRom(); };
+        ((Button)root.FindName("selectRom")).Click += delegate
+        {
+            var dialog = new OpenFileDialog
+            {
+                Title = "Elegir ROM para Pinball NS", Filter = "ROM de Game Boy|*.gbc;*.gb", CheckFileExists = true
+            };
+            if (dialog.ShowDialog(this) != true) return;
+            try
+            {
+                PinballNsPayload.ValidateRom(dialog.FileName);
+                pokemonRomPath = dialog.FileName;
+                refreshRom();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, "Pinball NS", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        };
         ((TextBlock)root.FindName("funStats")).Text = statistics == null ? "Los logros aparecerán después de una simulación." : statistics.Summary();
         autoActivate.Checked += delegate { idleSeconds.IsEnabled = true; };
         autoActivate.Unchecked += delegate { idleSeconds.IsEnabled = false; };
@@ -380,7 +425,7 @@ internal sealed class SettingsWindow : Window
         int lunarSeconds;
         if (!int.TryParse(lunarDelay.Text, out lunarSeconds) || lunarSeconds < 0 || lunarSeconds > 86400)
         {
-            if (lunarScene.IsChecked == true)
+            if (theme.SelectedIndex == (int)AppTheme.Pokemon)
             {
                 error.Text = "La espera en negro para la orilla debe estar entre 0 y 86400 segundos.";
                 lunarDelay.BringIntoView();
@@ -400,7 +445,8 @@ internal sealed class SettingsWindow : Window
                 AutoActivate = autoActivate.IsChecked == true, IdleSeconds = idle,
                 Humor = humorMode.SelectedIndex >= 0 ? (HumorMode)humorMode.SelectedIndex : HumorMode.Todos,
                 WakeOnInput = wakeOnInput.IsChecked == true,
-                ShowLunarScene = lunarScene.IsChecked == true, LunarDelaySeconds = lunarSeconds
+                Theme = theme.SelectedIndex == (int)AppTheme.Pokemon ? AppTheme.Pokemon : AppTheme.Clasico,
+                LunarDelaySeconds = lunarSeconds, PokemonRomPath = pokemonRomPath
             };
             bool desiredStartup = startup.IsChecked == true;
             shortcutOptions.ApplyTo(settings);

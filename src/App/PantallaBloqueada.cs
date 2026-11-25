@@ -400,7 +400,7 @@ internal sealed partial class LockWindow : Window
         if (showImage)
         {
             BuildLockImage(settings);
-            if (settings.ShowLunarScene && settings.TimeoutSeconds > 0) PrepareLunarScene();
+            if (settings.Theme == AppTheme.Pokemon && settings.TimeoutSeconds > 0) PrepareLunarScene();
         }
         InitializeFunWindow();
 

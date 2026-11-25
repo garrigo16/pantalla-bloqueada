@@ -4,6 +4,7 @@ using System.Xml.Serialization;
 
 // Autor: Miquel Garrigo
 public enum HumorMode { Discreto, Sarcasmo, Mascota, Todos }
+public enum AppTheme { Clasico, Pokemon }
 
 public sealed class AppSettings
 {
@@ -19,7 +20,8 @@ public sealed class AppSettings
     public HumorMode Humor { get; set; }
     public bool WakeOnInput { get; set; }
     internal const int DefaultLunarDelay = 5;
-    public bool ShowLunarScene { get; set; }
+    public AppTheme Theme { get; set; }
+    public string PokemonRomPath { get; set; }
     public int LunarDelaySeconds { get; set; }
     public int ActivateModifiers { get; set; }
     public int ActivateKey { get; set; }
@@ -41,7 +43,8 @@ public sealed class AppSettings
         IdleSeconds = 300;
         Humor = HumorMode.Todos;
         WakeOnInput = true;
-        ShowLunarScene = true;
+        Theme = AppTheme.Clasico;
+        PokemonRomPath = "";
         LunarDelaySeconds = DefaultLunarDelay;
         ActivateModifiers = UnlockModifiers = 8;
         ActivateKey = UnlockKey = 0;
