@@ -322,10 +322,36 @@ internal sealed class LunarScene : FrameworkElement, IDisposable
         var doubled = Scale2x(source, pose.Width, pose.Height);
         var enlarged = Scale2x(doubled, pose.Width * 2, pose.Height * 2);
         int width = pose.Width * 4, height = pose.Height * 4;
-        var tones = RefineTones(RefineTones(enlarged, width, height), width, height);
+        var thinnerLines = ThinInk(ThinInk(enlarged, width, height), width, height);
+        var tones = RefineTones(RefineTones(thinnerLines, width, height), width, height);
         var pixels = new byte[tones.Length * sizeof(uint)];
         Buffer.BlockCopy(tones, 0, pixels, 0, pixels.Length);
         return pixels;
+    }
+
+    // Thin the black strokes from their coloured side. Keep the silhouette and the narrow details.
+    private static uint[] ThinInk(uint[] source, int width, int height)
+    {
+        const uint ink = 0xff000000u;
+        var result = (uint[])source.Clone();
+        int[] sides = { -width, -1, 1, width };
+        for (int y = 2; y < height - 2; y++)
+            for (int x = 2; x < width - 2; x++)
+            {
+                int i = y * width + x;
+                if (source[i] != ink) continue;
+                uint surroundingAlpha = source[i - width - 1] & source[i - width] & source[i - width + 1]
+                    & source[i - 1] & source[i + 1] & source[i + width - 1] & source[i + width] & source[i + width + 1];
+                if ((surroundingAlpha & 0xff000000u) != 0xff000000u) continue;
+                foreach (int side in sides)
+                {
+                    uint colour = source[i + side];
+                    if (colour == ink || source[i - side] != ink || source[i - 2 * side] != ink) continue;
+                    result[i] = colour;
+                    break;
+                }
+            }
+        return result;
     }
 
     // Add smaller steps between similar interior tones. Keep the outline and transparency sharp.
