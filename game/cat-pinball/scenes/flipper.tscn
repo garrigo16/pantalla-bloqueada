@@ -1,0 +1,43 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/flipper.gd" id="1_flipper"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_flip"]
+friction = 0.2
+bounce = 0.1
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_anchor"]
+radius = 4.0
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_arm"]
+resource_local_to_scene = true
+radius = 11.0
+height = 105.0
+
+[node name="Flipper" type="Node2D"]
+script = ExtResource("1_flipper")
+
+[node name="Anchor" type="StaticBody2D" parent="."]
+collision_layer = 0
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape2D" parent="Anchor"]
+shape = SubResource("CircleShape2D_anchor")
+disabled = true
+
+[node name="Arm" type="RigidBody2D" parent="."]
+collision_layer = 1
+collision_mask = 2
+mass = 50.0
+physics_material_override = SubResource("PhysicsMaterial_flip")
+gravity_scale = 0.0
+can_sleep = false
+
+[node name="Shape" type="CollisionShape2D" parent="Arm"]
+position = Vector2(52.5, 0)
+rotation = 1.5707963
+shape = SubResource("CapsuleShape2D_arm")
+
+[node name="Joint" type="PinJoint2D" parent="."]
+node_a = NodePath("../Anchor")
+node_b = NodePath("../Arm")

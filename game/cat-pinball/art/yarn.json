@@ -1,0 +1,13 @@
+{
+  "members": {
+    "yarn": {
+      "center": [
+        48.0,
+        48.0
+      ],
+      "radius_px": 47.0,
+      "eyes": [],
+      "amber_blobs": 0
+    }
+  }
+}

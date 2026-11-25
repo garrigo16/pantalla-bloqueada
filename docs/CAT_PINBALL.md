@@ -1,0 +1,15 @@
+# Cat Pinball · integración 1.6
+
+Proyecto original: https://github.com/jueyi0206/cat-pinball, commit b93ab3a9e071e99691e232e4df7d66403767cfba. Autoría y créditos originales conservados. El responsable de Drifft Analyzer confirmó el 25/11/2026 que dispone de permisos para publicar el juego integrado. Se mantienen los avisos y las condiciones de terceros; no se atribuye la autoría del juego original a Drifft Analyzer. Véase THIRD_PARTY_NOTICES.md.
+
+`game/cat-pinball` contiene la adaptación. Los módulos de bola, palancas, topes, disparos, resortes y combate permanecen idénticos al original, verificados por hash. Se traducen 234 entradas de campaña, los textos de interfaz y los rótulos de las escenas.
+
+`integration/godot` contiene nuestra capa de presentación: imagen lofi propia, lluvia, parpadeos, luz cálida, entrada de teclado y alojamiento del juego original en un SubViewport con coordenadas lógicas de 720 × 1280. El tamaño de renderizado se ajusta a los píxeles finales de la pantalla, evitando ampliar texto rasterizado a baja resolución. El contenedor no reenvía otra vez el teclado: cada pulsación entra una sola vez. La historia completa el texto en curso antes de avanzar y exige soltar la tecla entre ambas acciones.
+
+La tipografía Nunito se incluye en `integration/godot/Nunito.ttf` desde [Google Fonts](https://github.com/google/fonts/tree/main/ofl/nunito), con su licencia SIL OFL 1.1 en `Nunito-OFL.txt`. Se utilizan sus pesos variables 500 para texto y 700 para títulos; se conserva la fuente original sin modificar. No requiere instalar fuentes en Windows. La exportación incluye también el texto de la licencia.
+
+Godot 4.7.2 se descarga de https://github.com/godotengine/godot-builds/releases/tag/4.7.2-stable. SHA-256 del ZIP Win64 oficial: `731980f9608d61333e5baf54a2ef17210acc7a538446c0cb9969f002aca1e953`. Su licencia MIT se incluye como recurso y acompaña a la copia preparada del motor. Los archivos preparados se verifican antes de ejecutarse y quedan en una caché temporal del usuario; no se descargan juegos ni motores durante la partida.
+
+El instalador incluye el paquete PCK y el ZIP del motor dentro del ejecutable de la app. La extracción es asíncrona y conserva la salida inmediata. Un JobObject de Windows vincula el proceso de Godot a la app para retirarlo también en un cierre abrupto. La ventana se aloja dentro de la pantalla elegida; las demás siguen negras. Se mantienen los atajos configurados y la combinación de juego derivada con Shift.
+
+`scripts/Build.ps1` prepara el juego automáticamente desde estas fuentes. `BuildPinball.ps1` descarga y comprueba el motor, copia la capa de presentación, importa los recursos, ejecuta las pruebas de campaña/controles y tipografía y exporta el PCK antes de compilar el instalador. Para reutilizar una copia verificada del ZIP se puede pasar `-GodotZip <archivo>`. También se admite `-PinballPack <PCK> -GodotZip <ZIP>` para reutilizar un paquete ya preparado. Ejecutar después `scripts/Test.ps1` para verificar instaladores y actualizador.

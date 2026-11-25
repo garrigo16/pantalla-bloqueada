@@ -1,0 +1,13 @@
+{
+  "members": {
+    "hedgehog": {
+      "center": [
+        56.94,
+        69.5
+      ],
+      "radius_px": 56.75,
+      "eyes": [],
+      "amber_blobs": 0
+    }
+  }
+}

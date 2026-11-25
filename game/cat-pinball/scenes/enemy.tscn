@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy.gd" id="1_enemy"]
+[ext_resource type="PackedScene" path="res://scenes/enemy_part.tscn" id="2_part"]
+
+[node name="Enemy" type="Node2D"]
+position = Vector2(335, 700)
+script = ExtResource("1_enemy")
+
+[node name="Core" parent="." instance=ExtResource("2_part")]
+position = Vector2(0, 0)
+radius = 44.0
+max_hp = 8
+knock_force = 300.0
+is_core = true
+
+[node name="LimbUpperLeft" parent="." instance=ExtResource("2_part")]
+position = Vector2(-135, -100)
+
+[node name="LimbUpperRight" parent="." instance=ExtResource("2_part")]
+position = Vector2(135, -100)

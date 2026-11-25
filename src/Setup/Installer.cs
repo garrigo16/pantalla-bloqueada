@@ -18,7 +18,7 @@ internal static class SetupProgram
         {
             if (!owns)
             {
-                if (Array.IndexOf(args, "--uninstall-worker") < 0) return 0;
+                if (Array.IndexOf(args, "--uninstall-worker") < 0) return 2;
                 try { owns = gate.WaitOne(15000); }
                 catch (AbandonedMutexException) { owns = true; }
                 if (!owns) return 1;
@@ -44,6 +44,7 @@ internal static class SetupProgram
         {
             Application.EnableVisualStyles();
             string appDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), AppIdentity.DirectoryName);
+            UpdateLog.DirectoryPath = appDirectory;
             if (worker)
             {
                 int parentId;

@@ -1,0 +1,149 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/table.gd" id="1_table"]
+[ext_resource type="PackedScene" path="res://scenes/flipper.tscn" id="2_flipper"]
+[ext_resource type="PackedScene" path="res://scenes/bumper.tscn" id="3_bumper"]
+[ext_resource type="PackedScene" path="res://scenes/ball.tscn" id="4_ball"]
+[ext_resource type="PackedScene" path="res://scenes/slingshot.tscn" id="5_sling"]
+[ext_resource type="PackedScene" path="res://scenes/pug_enemy.tscn" id="6_enemy"]
+[ext_resource type="Script" path="res://scripts/hedgehog_cart.gd" id="7_cart"]
+[ext_resource type="Script" path="res://scripts/rollover_lanes.gd" id="8_lanes"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_wall"]
+friction = 0.1
+bounce = 0.35
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_net"]
+friction = 0.0
+bounce = 0.5
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_drain"]
+size = Vector2(600, 60)
+
+[node name="Table" type="Node2D"]
+script = ExtResource("1_table")
+balls_per_game = 5
+kickback_cooldown = 25.0
+backdrop = "slide"
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(360, 640)
+
+[node name="Walls" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 2
+physics_material_override = SubResource("PhysicsMaterial_wall")
+
+[node name="SafetyNet" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 2
+physics_material_override = SubResource("PhysicsMaterial_net")
+
+[node name="Drain" type="Area2D" parent="."]
+position = Vector2(320, 1265)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Drain"]
+shape = SubResource("RectangleShape2D_drain")
+
+[node name="Enemy" parent="." instance=ExtResource("6_enemy")]
+position = Vector2(335, 440)
+
+[node name="Lanes" type="Node2D" parent="."]
+script = ExtResource("8_lanes")
+
+[node name="CartLeft" type="Node2D" parent="."]
+position = Vector2(100, 520)
+script = ExtResource("7_cart")
+aim = Vector2(140, 838)
+target = "TurretLeft"
+
+[node name="CartRight" type="Node2D" parent="."]
+position = Vector2(575, 520)
+script = ExtResource("7_cart")
+aim = Vector2(530, 838)
+target = "TurretRight"
+
+[node name="ObstacleLeft" parent="." instance=ExtResource("3_bumper")]
+position = Vector2(200, 610)
+skin = "beachball"
+
+[node name="ObstacleRight" parent="." instance=ExtResource("3_bumper")]
+position = Vector2(470, 610)
+skin = "beachball"
+
+[node name="TurretLeft" parent="." instance=ExtResource("3_bumper")]
+position = Vector2(140, 880)
+radius = 26.0
+kick_force = 250.0
+hits_per_shot = 1
+fires = true
+skin = "snow"
+
+[node name="TurretRight" parent="." instance=ExtResource("3_bumper")]
+position = Vector2(530, 880)
+radius = 26.0
+kick_force = 250.0
+hits_per_shot = 1
+fires = true
+skin = "jinbao"
+
+[node name="SlingshotLeft" parent="." instance=ExtResource("5_sling")]
+position = Vector2(199, 1041)
+shape_points = PackedVector2Array(-65, -63, -25, 9, 35, 51, 56, 1)
+face_index = 3
+kick_angle_offset = 20.0
+
+[node name="SlingshotRight" parent="." instance=ExtResource("5_sling")]
+position = Vector2(471, 1041)
+shape_points = PackedVector2Array(65, -63, 25, 9, -35, 51, -56, 1)
+face_index = 3
+kick_angle_offset = -20.0
+
+[node name="FlipperLeft" parent="." instance=ExtResource("2_flipper")]
+position = Vector2(218, 1140)
+rest_angle = 30.0
+flip_angle = -30.0
+action = "flip_left"
+
+[node name="FlipperRight" parent="." instance=ExtResource("2_flipper")]
+position = Vector2(452, 1140)
+rest_angle = 150.0
+flip_angle = -150.0
+action = "flip_right"
+
+[node name="Ball" parent="." instance=ExtResource("4_ball")]
+position = Vector2(660, 1180)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Hint" type="Label" parent="UI"]
+offset_left = 470.0
+offset_top = 12.0
+offset_right = 706.0
+offset_bottom = 60.0
+theme_override_colors/font_color = Color(0.231, 0.165, 0.145, 0.8)
+theme_override_font_sizes/font_size = 13
+horizontal_alignment = 2
+text = "Ctrl izq. / Ctrl dcho.: patitas
+Mantén Espacio y suelta · R: nuevo ovillo"
+
+[node name="NetButton" type="Button" parent="UI"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 138.0
+offset_bottom = 50.0
+focus_mode = 0
+theme_override_font_sizes/font_size = 16
+text = "Red de seguridad: no"
+
+[node name="NetHint" type="Label" parent="UI"]
+offset_left = 18.0
+offset_top = 54.0
+offset_right = 200.0
+offset_bottom = 74.0
+theme_override_colors/font_color = Color(0.231, 0.165, 0.145, 0.8)
+theme_override_font_sizes/font_size = 13
+text = "C: red de seguridad"

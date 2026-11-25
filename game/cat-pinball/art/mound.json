@@ -1,0 +1,13 @@
+{
+  "members": {
+    "mound": {
+      "center": [
+        64.03,
+        63.0
+      ],
+      "radius_px": 51.5,
+      "eyes": [],
+      "amber_blobs": 0
+    }
+  }
+}

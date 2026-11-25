@@ -51,48 +51,71 @@ internal sealed class PackageInstallation
             uninstaller == null || uninstaller.Length < 2 || uninstaller[0] != 0x4d || uninstaller[1] != 0x5a)
             throw new IOException("El paquete está incompleto.");
         var backups = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
+        var staged = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         string previousStartup = host.StartupCommand;
         bool existed = Directory.Exists(DirectoryPath);
-        bool startupChanged = false;
-        host.StopApplication();
-        Directory.CreateDirectory(DirectoryPath);
+        bool startupChanged = false, stopped = false;
+        string previousExecutable = File.Exists(ExecutablePath) ? ExecutablePath : OwnedPath(AppIdentity.LegacyExecutableName);
         try
         {
-            Store(AppIdentity.ExecutableName, application, backups);
-            RemoveLegacyExecutable(backups);
-            Store("Desinstalar.exe", uninstaller, backups);
+            Directory.CreateDirectory(DirectoryPath);
+            Stage(AppIdentity.ExecutableName, application, staged);
+            Stage("Desinstalar.exe", uninstaller, staged);
             if (!File.Exists(OwnedPath("ajustes.xml")))
-                Store("ajustes.xml", previousSettingsPath != null && File.Exists(previousSettingsPath)
-                    ? File.ReadAllBytes(previousSettingsPath) : AppSettings.DefaultXml(), backups);
+                Stage("ajustes.xml", previousSettingsPath != null && File.Exists(previousSettingsPath)
+                    ? File.ReadAllBytes(previousSettingsPath) : AppSettings.DefaultXml(), staged);
+            // Comprobar carpeta, permisos y espacio antes de cerrar la instancia que funciona.
+            host.StopApplication(); stopped = true;
+            foreach (var item in staged) StorePrepared(item.Key, item.Value, backups);
+            RemoveLegacyExecutable(backups);
             // Actualizar respeta si el usuario había desactivado el inicio automático.
             bool wasEnabled = StartupRegistration.IsAppCommand(previousStartup);
             if (!updating || wasEnabled)
             {
-                host.StartupCommand = ExpectedStartup;
                 startupChanged = true;
+                host.StartupCommand = ExpectedStartup;
             }
             host.Launch(ExecutablePath);
+            UpdateLog.Write("instalacion-completada");
         }
-        catch
+        catch (Exception error)
         {
+            UpdateLog.Write("instalacion-revertir", error);
             foreach (var item in backups)
             {
                 if (item.Value == null) { if (File.Exists(item.Key)) File.Delete(item.Key); }
                 else AtomicWrite(item.Key, item.Value);
             }
             if (startupChanged) host.StartupCommand = previousStartup;
+            if (stopped && File.Exists(previousExecutable))
+            {
+                try { host.Launch(previousExecutable); UpdateLog.Write("version-anterior-restaurada"); }
+                catch (Exception ex) { UpdateLog.Write("reiniciar-version-anterior", ex); }
+            }
+            throw;
+        }
+        finally
+        {
+            foreach (var temp in staged.Values)
+                try { if (File.Exists(temp)) File.Delete(temp); } catch (Exception ex) { UpdateLog.Write("limpiar-instalacion", ex); }
             if (!existed && Directory.Exists(DirectoryPath) && Directory.GetFileSystemEntries(DirectoryPath).Length == 0)
                 Directory.Delete(DirectoryPath, false);
-            throw;
         }
     }
 
-    private void Store(string name, byte[] data, IDictionary<string, byte[]> backups)
+    private void Stage(string name, byte[] data, IDictionary<string, string> staged)
+    {
+        string temp = OwnedPath(name) + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        staged.Add(name, temp);
+        File.WriteAllBytes(temp, data);
+    }
+
+    private void StorePrepared(string name, string temp, IDictionary<string, byte[]> backups)
     {
         string path = OwnedPath(name);
         byte[] previous = File.Exists(path) ? File.ReadAllBytes(path) : null;
-        AtomicWrite(path, data);
         backups.Add(path, previous);
+        if (File.Exists(path)) File.Replace(temp, path, null); else File.Move(temp, path);
     }
 
     private void RemoveLegacyExecutable(IDictionary<string, byte[]> backups)
@@ -122,7 +145,7 @@ internal sealed class PackageInstallation
         string legacyStartup = "\"" + OwnedPath(AppIdentity.LegacyExecutableName) + "\" --background";
         if (string.Equals(host.StartupCommand, ExpectedStartup, StringComparison.OrdinalIgnoreCase) ||
             string.Equals(host.StartupCommand, legacyStartup, StringComparison.OrdinalIgnoreCase)) host.StartupCommand = null;
-        foreach (string name in new[] { AppIdentity.ExecutableName, AppIdentity.LegacyExecutableName, "Desinstalar.exe", "ajustes.xml", "updates.xml" })
+        foreach (string name in new[] { AppIdentity.ExecutableName, AppIdentity.LegacyExecutableName, "Desinstalar.exe", "ajustes.xml", "updates.xml", "actualizador.log" })
         {
             string path = OwnedPath(name);
             if (File.Exists(path)) File.Delete(path);

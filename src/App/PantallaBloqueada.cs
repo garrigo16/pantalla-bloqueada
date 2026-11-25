@@ -58,6 +58,7 @@ internal static class Program
         catch (WaitHandleCannotBeOpenedException) { return 1; }
         catch (Exception ex)
         {
+            UpdateLog.Write("app-inicio", ex);
             MessageBox.Show("No se pudo activar la aplicación.\n\n" + ex.Message,
                 AppIdentity.DisplayName, MessageBoxButton.OK, MessageBoxImage.Information);
             return 1;

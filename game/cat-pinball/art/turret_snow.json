@@ -1,0 +1,13 @@
+{
+  "members": {
+    "turret_snow": {
+      "center": [
+        92.05,
+        106.2
+      ],
+      "radius_px": 85.9,
+      "eyes": [],
+      "amber_blobs": 0
+    }
+  }
+}

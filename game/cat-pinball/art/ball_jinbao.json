@@ -1,0 +1,13 @@
+{
+  "members": {
+    "ball_jinbao": {
+      "center": [
+        40.0,
+        53.5
+      ],
+      "radius_px": 40.25,
+      "eyes": [],
+      "amber_blobs": 0
+    }
+  }
+}

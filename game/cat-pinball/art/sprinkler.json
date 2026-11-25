@@ -1,0 +1,11 @@
+{
+  "members": {
+    "sprinkler": {
+      "center": [
+        128.0,
+        25.5
+      ],
+      "half_len_px": 125.0
+    }
+  }
+}

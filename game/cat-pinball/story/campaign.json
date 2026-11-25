@@ -1,0 +1,598 @@
+{
+  "illustrations": {
+    "story_01": {
+      "image": "res://art/story_01.png",
+      "note": "Ilustración original: story_01"
+    },
+    "story_02": {
+      "image": "res://art/story_02.png",
+      "note": "Ilustración original: story_02"
+    },
+    "story_03": {
+      "image": "res://art/story_03.png",
+      "note": "Ilustración original: story_03"
+    },
+    "story_04": {
+      "image": "res://art/story_04.png",
+      "note": "Ilustración original: story_04"
+    },
+    "story_05": {
+      "image": "res://art/story_05.png",
+      "note": "Ilustración original: story_05"
+    },
+    "story_06": {
+      "image": "res://art/story_06.png",
+      "note": "Ilustración original: story_06"
+    },
+    "story_07": {
+      "image": "res://art/story_07.png",
+      "note": "Ilustración original: story_07"
+    },
+    "story_08": {
+      "image": "res://art/story_08.png",
+      "note": "Ilustración original: story_08"
+    },
+    "story_09": {
+      "image": "res://art/story_09.png",
+      "note": "Ilustración original: story_09"
+    },
+    "story_10": {
+      "image": "res://art/story_10.png",
+      "note": "Ilustración original: story_10"
+    },
+    "story_11": {
+      "image": "res://art/story_11.png",
+      "note": "Ilustración original: story_11"
+    },
+    "story_12": {
+      "image": "res://art/story_12.png",
+      "note": "Ilustración original: story_12"
+    },
+    "story_13": {
+      "image": "res://art/story_13.png",
+      "note": "Ilustración original: story_13"
+    },
+    "story_14": {
+      "image": "res://art/story_14.png",
+      "note": "Ilustración original: story_14"
+    },
+    "story_lose_01": {
+      "image": "res://art/story_lose_01.png",
+      "note": "Ilustración original: story_lose_01"
+    },
+    "photo_colona": {
+      "image": "res://art/photo_colona.jpg",
+      "note": "Ilustración original: photo_colona"
+    },
+    "photo_snow": {
+      "image": "res://art/photo_snow.jpg",
+      "note": "Ilustración original: photo_snow"
+    },
+    "photo_jinbao": {
+      "image": "res://art/photo_jinbao.jpg",
+      "note": "Ilustración original: photo_jinbao"
+    },
+    "story_ig": {
+      "image": "res://art/qr_ig.png",
+      "link": "https://www.instagram.com/catwarmhouse",
+      "note": "Ilustración original: story_ig"
+    },
+    "story_end": {
+      "image": "res://art/qr_fb.png",
+      "link": "https://www.facebook.com/profile.php?id=100063882136906",
+      "note": "Ilustración original: story_end"
+    },
+    "story_lose_03": {
+      "image": "res://art/story_lose_03.png",
+      "note": "Ilustración original: story_lose_03"
+    },
+    "story_lose_02": {
+      "image": "res://art/story_lose_02.png",
+      "note": "Ilustración original: story_lose_02"
+    }
+  },
+  "chapters": [
+    {
+      "id": "ch01",
+      "title": "Capítulo 1 · ¡A por el atún!",
+      "intro": [
+        {
+          "who": "",
+          "scene": "story_01",
+          "text": "El sol ilumina el patio. En el porche de madera espera una lata recién abierta del mejor atún, que brilla como un tesoro."
+        },
+        {
+          "who": "Humana",
+          "act": "Deja el plato con cuidado y le acaricia la cabeza",
+          "text": "Colona, hoy te has portado de maravilla. ¡Ya está abierto tu atún especial! Come despacio, que voy a tender la ropa."
+        },
+        {
+          "who": "Colona",
+          "act": "Se le iluminan los ojos y empieza a frotarse contra todo",
+          "text": "Prrrr… ¡Qué aroma! ¡El legendario atún de alta mar que solo aparece cada tres años! Gracias, criatura de dos patas. ¡Que los dioses gatunos te protejan!"
+        },
+        {
+          "who": "",
+          "text": "Colona se dispone a dar el primer bocado cuando oye un ruido entre las flores."
+        },
+        {
+          "who": "Mapache Bocazas",
+          "act": "Sale rodando de los arbustos y se planta con las manos en la cintura",
+          "scene": "story_02",
+          "text": "¡Ja, ja, ja! ¡He olido ese manjar desde tres calles más allá! Gata regordeta, dame la lata si no quieres llevarte un disgusto."
+        },
+        {
+          "who": "Colona",
+          "act": "Se eriza y se coloca delante de la lata",
+          "text": "¡Ni lo sueñes! ¡Quien toque mi comida se lleva un zarpazo! ¡Este almuerzo es sagrado!"
+        },
+        {
+          "who": "Mapache Bocazas",
+          "act": "Hace una señal y aparecen dos ardillas con parche en el ojo",
+          "text": "¿Por las buenas no? ¡Pues por las malas! ¡Chicos, coged la lata!"
+        },
+        {
+          "who": "",
+          "text": "Cuando el mapache está a punto de abalanzarse, una sombra blanca salta desde el muro y se oye un grito peculiar."
+        },
+        {
+          "who": "Nieve",
+          "act": "Aterriza junto a Colona y se lame una pata con elegancia",
+          "scene": "story_03",
+          "text": "¿De dónde ha salido este ladrón que se atreve a montar un numerito en nuestro territorio?"
+        },
+        {
+          "who": "Jinbao",
+          "act": "Golpea el suelo con su casco de cartón y adopta una pose de combate bastante cómica",
+          "text": "¡Villano! ¡No pasarás ante Jinbao, el Caballero Oscuro de la justicia! Colona, tranquila. ¡Te ayudaremos a proteger el atún!"
+        },
+        {
+          "who": "Colona",
+          "act": "Se le saltan las lágrimas de emoción y levanta sus patitas",
+          "text": "¡Amigos! Por la gloria de la lata de atún… ¡al ataque!"
+        }
+      ],
+      "level": {
+        "balls": 3,
+        "core_hp": 8,
+        "limb_hp": 3,
+        "brief": {
+          "title": "Nivel 1 · Protege el atún",
+          "lines": [
+            "Lanza el ovillo con las dos patitas y alcanza al mapache.",
+            "Derrota primero a las dos ardillas; después, golpea al mapache.",
+            "Cada ovillo que cae por abajo cuesta una vida. Si los pierdes todos, toca reintentar.",
+            "Las bellotas de las ardillas encogen las patitas durante tres segundos.",
+            "Con las patitas encogidas, el hueco central es mayor: ¡cuidado!",
+            "Los resortes laterales salvan ovillos. Tardan 15 segundos en recargarse."
+          ]
+        }
+      },
+      "lose_title": "¿¡Se han llevado el atún!?",
+      "lose": [
+        {
+          "who": "Mapache Bocazas",
+          "act": "Abraza la lata y se ríe a carcajadas",
+          "scene": "story_lose_01",
+          "text": "¡Ja, ja, ja! ¿Tres gatitos pretendían plantarme cara? ¡Pues este atún de lujo me lo quedo yo!"
+        },
+        {
+          "who": "Ardillas",
+          "act": "Saltan de alegría junto a su jefe",
+          "text": "¡Viva el jefe! ¡El jefe es el mejor!"
+        },
+        {
+          "who": "Colona",
+          "act": "Está tumbada en el porche, con la tripa rugiendo",
+          "text": "Mi… mi almuerzo sagrado…"
+        },
+        {
+          "who": "Nieve",
+          "act": "Se sacude el pelo y se pone de pie",
+          "text": "Esto no ha acabado. Colona, levántate. ¡Vamos otra vez!"
+        },
+        {
+          "who": "Jinbao",
+          "act": "Se endereza el casco de cartón",
+          "text": "¡El Caballero Oscuro nunca se rinde! ¡Otra ronda!"
+        }
+      ],
+      "outro_title": "La comida más rica del mundo",
+      "outro": [
+        {
+          "who": "",
+          "scene": "story_04",
+          "text": "El mapache y las ardillas salen huyendo, con unos cuantos chichones de recuerdo."
+        },
+        {
+          "who": "Mapache Bocazas",
+          "act": "Corre protegiéndose la cabeza",
+          "text": "¡Ay! ¡Cómo os las gastáis los gatos! ¡Acordaos de mí, que volveré!"
+        },
+        {
+          "who": "Jinbao",
+          "act": "Saca pecho bajo su casco, que ha quedado un poco torcido",
+          "text": "¡Uf! ¡La justicia vuelve a vencer al mal! Aunque casi me rompen la capa… que en realidad es una bolsa."
+        },
+        {
+          "who": "Nieve",
+          "act": "Mira la lata intacta y sonríe resignada",
+          "text": "Ya está, peligro resuelto. Aunque, Colona, creo que estás a punto de babear dentro de la lata."
+        },
+        {
+          "who": "Colona",
+          "act": "Se traga la saliva y empuja la lata hacia el centro",
+          "scene": "story_05",
+          "text": "Je, je… ¡Gracias por ayudarme! Comamos juntos. Los humanos dicen que el atún sabe mejor cuando se comparte con buenos amigos."
+        },
+        {
+          "who": "Nieve",
+          "act": "Se le iluminan los ojos",
+          "text": "¡Pues no me lo digas dos veces!"
+        },
+        {
+          "who": "Jinbao",
+          "act": "Se quita el casco de cartón al instante",
+          "text": "¡Los caballeros también necesitan reponer fuerzas! ¡A comer!"
+        },
+        {
+          "who": "",
+          "text": "Los tres gatos juntan las cabezas sobre el pequeño plato y ronronean satisfechos. El patio se llena de alegría y de un aroma delicioso."
+        }
+      ]
+    },
+    {
+      "id": "ch02",
+      "title": "Capítulo 2 · Aji, el ladrón subterráneo",
+      "intro": [
+        {
+          "who": "",
+          "scene": "story_06",
+          "text": "Por la tarde, los tres gatos pasean hasta el parque. Con la barriga llena, se tumban en fila sobre el césped para tomar el sol."
+        },
+        {
+          "who": "Jinbao",
+          "act": "Deja el casco en el césped y suelta un enorme bostezo",
+          "text": "Prrrr… Tomar el sol después de comer es el mayor placer de la vida de un caballero."
+        },
+        {
+          "who": "Colona",
+          "act": "Se acaricia la barriga y mira al infinito",
+          "text": "Atún… delicioso… Ojalá hubiera otra lata…"
+        },
+        {
+          "who": "Nieve",
+          "act": "Le recuerda algo sin abrir los ojos",
+          "text": "Colona, hoy has comido el doble. Como sigas así, vas a pasar de gata regordeta a pelota de playa."
+        },
+        {
+          "who": "",
+          "scene": "story_07",
+          "text": "De pronto, un topo con gafas protectoras sale disparado de un túnel, agarra el casco de Jinbao y empieza a arrastrarlo bajo tierra."
+        },
+        {
+          "who": "Jinbao",
+          "act": "Da un salto y se le eriza la cola",
+          "text": "¡Aaaah! ¡Mi casco de caballero! ¡Es la fuente de mi poder!"
+        },
+        {
+          "who": "Colona",
+          "act": "Se incorpora dando una voltereta",
+          "text": "¡Robar mientras los gatos duermen! ¡Qué poca vergüenza!"
+        },
+        {
+          "who": "Aji, el topo",
+          "act": "Enseña sus grandes dientes, muy satisfecho",
+          "text": "Je, je… Qué grosor, qué buen cartón. ¡Será un trono perfecto para el rey! ¡A ver si me pilláis, gatos bobos!"
+        },
+        {
+          "who": "Nieve",
+          "act": "Saca las uñas",
+          "text": "¡No vas a escapar! No te basta con destrozar el césped: ¡también robas el equipo de nuestro amigo!"
+        }
+      ],
+      "level": {
+        "scene": "res://scenes/level2.tscn",
+        "balls": 4,
+        "core_hp": 6,
+        "limb_hp": 1,
+        "brief": {
+          "title": "Nivel 2 · Recupera el casco",
+          "lines": [
+            "Aji se esconde en los túneles. Mientras pueda escapar, no podrás hacerle daño.",
+            "Los pececillos de los gatos tapan los túneles. Deja solo uno abierto para acorralarle.",
+            "Volverá a abrirlos pasado un rato. ¡Date prisa!",
+            "Sin casco, Jinbao necesita dos golpes para lanzar un pececillo.",
+            "En el segundo asalto, Aji lleva el casco de cartón. Solo el ovillo puede quitárselo.",
+            "El barro encoge las patitas durante tres segundos y agranda el hueco central.",
+            "Enciende los tres caminos de arriba para que Nieve rescate un ovillo."
+          ]
+        },
+        "phase2_cutscene": {
+          "hurt": "Ay, ay… ¡Bah! ¿Creíais que ya habíais ganado?",
+          "dig": "¡Brrrum!",
+          "box": "¡Contemplad mi cabezazo de cartón! ¡Ahora voy en serio!",
+          "jinbao": "¡Ese es mi casco de caballero! ¡Devuélvemelo!",
+          "title": "Segundo asalto",
+          "hint": "Golpea el casco de Aji con el ovillo para devolvérselo a Jinbao."
+        }
+      },
+      "lose_title": "¿¡Se han llevado el casco!?",
+      "lose": [
+        {
+          "who": "Aji, el topo",
+          "act": "Lleva el casco robado y hace el gesto de la victoria",
+          "scene": "story_lose_02",
+          "text": "¡Je, je! ¡Bajo tierra mando yo! Me quedo el casco. ¡Adiós, gatos bobos!"
+        },
+        {
+          "who": "Jinbao",
+          "act": "Está cubierto de barro y a punto de llorar",
+          "text": "Mi casco… la fuente de mi poder…"
+        },
+        {
+          "who": "Colona",
+          "act": "Se sacude el barro de la cara",
+          "text": "¡Puaj! ¡Atacar desde los túneles! ¡Qué tramposo!"
+        },
+        {
+          "who": "Nieve",
+          "act": "Entrecierra los ojos y observa los túneles",
+          "text": "Ya he visto por dónde se mueve. Esta vez taparemos las salidas y le pillaremos."
+        }
+      ],
+      "outro": [
+        {
+          "who": "",
+          "scene": "story_08",
+          "text": "Los tres gatos rodean a Aji, que tiembla agachado, con las patas sobre la cabeza."
+        },
+        {
+          "who": "Aji, el topo",
+          "act": "Tiene los ojos llenos de lágrimas",
+          "text": "¡Me rindo! ¡Me rindo! Guardad las uñas. ¡No me arañéis la nariz!"
+        },
+        {
+          "who": "Jinbao",
+          "act": "Recupera el casco y limpia con cariño el barro del cartón",
+          "text": "¡Hum! Casi me llenas de barro el casco de la justicia. ¡Habla! ¿Para qué trono querías mi caja?"
+        },
+        {
+          "who": "Aji, el topo",
+          "act": "Se sorbe la nariz",
+          "text": "Es… es para el jefe Carlino, el perro que vive bajo el tobogán. Quiere construir el castillo más imponente del parque. Nos ha mandado llevarle todas las cajas y juguetes. Si no obedecemos, amenaza con aplastar nuestros túneles…"
+        },
+        {
+          "who": "Colona",
+          "act": "Aprieta las patitas, indignada",
+          "text": "¡Otra vez ese perro que roba las cosas de los demás! ¡La última vez intentó quedarse con mi caña de jugar!"
+        },
+        {
+          "who": "Nieve",
+          "act": "Les mira con determinación",
+          "text": "Pues no podemos quedarnos de patas cruzadas. Jinbao, Colona: vamos al tobogán a darle al jefe Carlino una lección de modales."
+        },
+        {
+          "who": "Jinbao",
+          "act": "Se coloca el casco con estilo y adopta una pose heroica",
+          "scene": "story_09",
+          "text": "¡Escuadrón de la justicia, en marcha! ¡Por la paz del parque!"
+        }
+      ]
+    },
+    {
+      "id": "ch03",
+      "title": "Capítulo 3 · El castillo del jefe Carlino",
+      "intro": [
+        {
+          "who": "",
+          "scene": "story_10",
+          "text": "Alrededor del gran tobogán se amontonan cajas, pelotas y juguetes robados. Parece una pequeña fortaleza caótica."
+        },
+        {
+          "who": "Jefe Carlino",
+          "act": "Un carlino rechoncho, con collar de pinchos y cadena de oro, roe un hueso en lo alto del tobogán",
+          "text": "¡Guau! ¡Qué castillo tan majestuoso! ¡Desde hoy, todos los tesoros del parque pertenecen a su rey!"
+        },
+        {
+          "who": "Colona",
+          "act": "Entra en la fortaleza con paso decidido",
+          "text": "¡Oye, Carlino! ¡Tu castillo está hecho con cosas robadas! ¡Eso no tiene ninguna gracia!"
+        },
+        {
+          "who": "Jefe Carlino",
+          "act": "Entrecierra los ojos y se ríe con voz ronca",
+          "text": "Resoplido… ¿De dónde salen estas bolitas de pelo? ¿Pretendéis desafiar al rey Carlino? ¡Chicos, enseñadles quién manda!"
+        },
+        {
+          "who": "",
+          "scene": "story_11",
+          "text": "Unos erizos traviesos con casco salen rodando de detrás de un carrito. El jefe Carlino empieza a dar pisotones. ¡Se avecina la batalla!"
+        },
+        {
+          "who": "Nieve",
+          "act": "Esquiva una pelota con un movimiento elegante",
+          "text": "Ser grande no te da derecho a abusar de los pequeños. ¡Hoy vas a descubrir lo ágiles que somos los gatos!"
+        },
+        {
+          "who": "Jinbao",
+          "act": "Su casco de cartón parece brillar de entusiasmo",
+          "text": "¡Allá va el salto volador del Caballero Oscuro!"
+        },
+        {
+          "who": "Nieve",
+          "act": "Vigila a los erizos que no paran de rodar",
+          "text": "¡Cuidado con los erizos! Sus púas nos atascan: Jinbao y yo tardaremos más en disparar, y los rescates laterales necesitarán más tiempo para recargarse."
+        },
+        {
+          "who": "Colona",
+          "act": "Enseña sus patitas con energía",
+          "text": "¡Devuelve las cosas de todo el mundo! ¡Vamos allá!"
+        }
+      ],
+      "level": {
+        "scene": "res://scenes/level3.tscn",
+        "balls": 5,
+        "core_hp": 8,
+        "limb_hp": 2,
+        "brief": {
+          "title": "Nivel final · Derrota al jefe Carlino",
+          "lines": [
+            "Cada caja de la muralla aguanta dos golpes.",
+            "Cuando caiga la muralla, Carlino bajará del tobogán y aparecerá otro ovillo.",
+            "Los erizos atascan a los gatos: necesitarán un golpe más para disparar.",
+            "Las pelotas encogen las patitas tres segundos y agrandan el hueco.",
+            "Los pisotones de Carlino hacen que los ovillos salgan despedidos.",
+            "Con las púas clavadas, los resortes laterales tardan 25 segundos en recargarse."
+          ]
+        },
+        "phase2_cutscene": {
+          "hurt": "¡Auu! ¡Mi castillo! ¡Malditas bolitas de pelo!",
+          "collapse": "¡Cataplum! ¡Crash!",
+          "angry": "¡El rey está furioso! ¡Os voy a aplastar!",
+          "jinbao": "¡Allá va el salto volador del Caballero Oscuro!",
+          "title": "Asalto final",
+          "hint": "¡Carlino no para de moverse! ¡A por él con los dos ovillos!"
+        }
+      },
+      "lose_title": "¿¡El castillo sigue en pie!?",
+      "lose": [
+        {
+          "who": "Jefe Carlino",
+          "act": "Ríe con el hueso entre los dientes y una pata sobre una caja",
+          "scene": "story_lose_03",
+          "text": "¡Guau, ja, ja! ¡Mi castillo es inexpugnable! ¡Vosotros, bolitas de pelo, no os llevaréis ni un trozo de cartón!"
+        },
+        {
+          "who": "Erizos",
+          "act": "Ruedan junto al castillo y vitorean al jefe",
+          "text": "¡Viva el rey! ¡Viva el rey!"
+        },
+        {
+          "who": "Jinbao",
+          "act": "Está tirado en el césped, con una esquina del casco hundida",
+          "text": "Ay… La armadura del caballero… se ha abollado…"
+        },
+        {
+          "who": "Nieve",
+          "act": "Se levanta, mueve la cola y afila la mirada",
+          "text": "Siempre levanta la pata antes de pisotear. La próxima vez nos apartaremos justo a tiempo."
+        },
+        {
+          "who": "Colona",
+          "act": "Mira los juguetes del castillo y aprieta las patitas",
+          "text": "¡Esas cosas son de los demás! ¡Otra vez! ¡Tenemos que recuperarlas!"
+        }
+      ],
+      "outro": [
+        {
+          "who": "",
+          "scene": "story_12",
+          "text": "Las cajas de la fortaleza se derrumban. El jefe Carlino acaba patas arriba, resoplando, agotado."
+        },
+        {
+          "who": "Jefe Carlino",
+          "act": "Se sienta con las orejas caídas y se frota el trasero",
+          "text": "Auu… Cómo duele… ¿Cómo podéis correr tanto los gatos?"
+        },
+        {
+          "who": "Nieve",
+          "act": "Guarda las uñas y cruza las patas",
+          "text": "¿Admites la derrota? Ahora devuelve todo lo que has robado a los animales del parque."
+        },
+        {
+          "who": "Jinbao",
+          "act": "Le acerca una pelota de una patada",
+          "text": "La fuerza sirve para proteger a los demás, no para abusar de los vecinos. ¿Entendido?"
+        },
+        {
+          "who": "Jefe Carlino",
+          "act": "Mira al suelo, con los ojos llenos de lágrimas",
+          "text": "Yo… solo quería jugar con vosotros… Pero todos huyen cuando me ven. Pensé que, si construía un castillo impresionante, vendríais a verme…"
+        },
+        {
+          "who": "Colona",
+          "act": "Se queda sorprendida, sonríe y saca un pececillo",
+          "scene": "story_13",
+          "text": "¡Pues haberlo dicho! ¡Claro que puedes jugar con nosotros! Toma, la mitad para ti. Un regalo para celebrar que ya somos amigos."
+        },
+        {
+          "who": "Jefe Carlino",
+          "act": "Coge el pececillo y la cola empieza a girarle como una hélice",
+          "text": "¿De… de verdad? ¡Guau! ¡Gracias!"
+        },
+        {
+          "who": "Jinbao",
+          "act": "Le da unas palmaditas en el lomo",
+          "text": "Muy bien. Como te has arrepentido de verdad, te nombro oficialmente perro guardián de la orden de caballería del parque."
+        },
+        {
+          "who": "Nieve",
+          "act": "Se lleva una pata a la frente, pero sonríe",
+          "text": "Ya está repartiendo títulos otra vez… En fin, parece que hoy todos podremos dormir tranquilos."
+        },
+        {
+          "who": "",
+          "scene": "story_14",
+          "text": "El atardecer tiñe el parque de oro. Tres gatos y un carlino se sientan juntos en el tobogán, proyectando unas sombras larguísimas."
+        }
+      ]
+    }
+  ],
+  "ending_title": "La defensa de los gatos",
+  "ending": [
+    {
+      "who": "",
+      "text": "¡Gracias por jugar a la demo de La defensa de los gatos!"
+    },
+    {
+      "who": "",
+      "text": "Las aventuras de Colona y sus amigos continuarán…"
+    },
+    {
+      "who": "",
+      "text": "Por cierto, los tres gatos del juego existen de verdad. Os presentamos a los protagonistas."
+    },
+    {
+      "who": "",
+      "scene": "photo_colona",
+      "text": "Esta es Colona. Las patitas que lanzan el ovillo en el juego son las suyas."
+    },
+    {
+      "who": "",
+      "text": "Suele estar así, tumbada en el suelo, esperando a que alguien pase y le dé unas caricias."
+    },
+    {
+      "who": "",
+      "scene": "photo_snow",
+      "text": "Esta es Nieve. Tiene la misma mirada que su personaje en la mesa de pinball."
+    },
+    {
+      "who": "",
+      "text": "Parece enfadada, pero solo la han despertado con la cámara en mitad de la siesta."
+    },
+    {
+      "who": "",
+      "scene": "photo_jinbao",
+      "text": "Y este es Jinbao. El casco se lo hemos puesto en el juego; en la vida real no le hace falta."
+    },
+    {
+      "who": "",
+      "text": "Es tan negro que solo le brillan los ojos. Apagas la luz y lo único que encuentras son dos lucecitas."
+    },
+    {
+      "who": "",
+      "scene": "story_end",
+      "text": "Podéis conocer a estos gatitos en Cat Warm House, el hogar de sus protagonistas."
+    },
+    {
+      "who": "",
+      "text": "El código QR de arriba lleva a la página de Facebook de sus cuidadores."
+    },
+    {
+      "who": "",
+      "scene": "story_ig",
+      "text": "También podéis seguir su día a día en Instagram."
+    }
+  ]
+}

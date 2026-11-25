@@ -1,0 +1,13 @@
+{
+  "members": {
+    "turret_jinbao": {
+      "center": [
+        96.3,
+        113.5
+      ],
+      "radius_px": 82.25,
+      "eyes": [],
+      "amber_blobs": 0
+    }
+  }
+}

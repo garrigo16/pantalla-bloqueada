@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/slingshot.gd" id="1_sling"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_sling"]
+friction = 0.05
+bounce = 0.25
+
+[node name="Slingshot" type="StaticBody2D"]
+collision_layer = 1
+collision_mask = 2
+physics_material_override = SubResource("PhysicsMaterial_sling")
+script = ExtResource("1_sling")
+
+[node name="Shape" type="CollisionPolygon2D" parent="."]
+
+[node name="Trigger" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="Shape" type="CollisionPolygon2D" parent="Trigger"]

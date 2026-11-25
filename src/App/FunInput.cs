@@ -37,8 +37,10 @@ internal sealed partial class LockController
         var target = FunWindow(); if (target == null) return;
         if (target.HasPinball && (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl))
         { target.PinballInput(e.Key, true, e.IsRepeat); e.Handled = true; return; }
+        if (target.HasPinball && !Modifier(e.Key) && (Keyboard.Modifiers & (ModifierKeys.Windows | ModifierKeys.Alt)) == 0)
+        { target.PinballInput(e.Key, true, e.IsRepeat); e.Handled = true; return; }
         if (e.IsRepeat || Modifier(e.Key) || CommandModifier()) return;
-        if (target.HasPinball) { target.PinballInput(e.Key, true, false); e.Handled = true; return; }
+        if (target.HasPinball) return;
         if (settings.WakeOnInput) target.Peek();
         target.React(fun.Key(Translate(e.Key), false, false), null);
         if (e.Key == Key.Escape || e.Key == Key.Enter || e.Key == Key.Space || e.Key == Key.F1) e.Handled = true;

@@ -1,0 +1,13 @@
+{
+  "members": {
+    "hole": {
+      "center": [
+        95.63,
+        92.27
+      ],
+      "radius_px": 84.87,
+      "eyes": [],
+      "amber_blobs": 0
+    }
+  }
+}

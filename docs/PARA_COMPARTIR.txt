@@ -2,6 +2,7 @@ DRIFFT ANALYZER
 
 Abre Iniciar.exe. La aplicación se instala para tu usuario y queda activa.
 No necesita permisos de administrador.
+El ZIP incluye el paquete completo: conserva Iniciar.exe y DrifftAnalyzer-Setup.exe juntos para instalar sin una descarga adicional.
 Desde el icono junto al reloj puedes configurar pantallas, fondo, tiempos e inicio con Windows.
 
 BROMAS
@@ -19,6 +20,8 @@ Se comprueban automáticamente cada 12 horas mientras la app está en ejecución
 En Configurar > Actualizaciones puedes buscar versiones y pulsar Actualizar si hay una nueva.
 Si ya tienes la última, la aplicación lo indica. Descargar e instalar requiere pulsar el botón.
 Las actualizaciones conservan tus ajustes y tu preferencia de inicio con Windows.
+Si una copia antigua ya quedó atascada al actualizar, abre una vez el nuevo Iniciar.exe.
+También puedes usar directamente DrifftAnalyzer-Setup.exe. Un fallo deja disponible el reintento y conserva la versión anterior.
 
 Los valores iniciales son 20 segundos de fondo y un movimiento de un píxel cada 5 minutos, alternando izquierda y derecha mientras dura la simulación.
 Puedes borrar este paquete tras instalarlo. Para retirar la app, usa Desinstalar.exe.

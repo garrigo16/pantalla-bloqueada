@@ -1,0 +1,13 @@
+{
+  "members": {
+    "raccoon": {
+      "center": [
+        128.0,
+        107.5
+      ],
+      "radius_px": 100.25,
+      "eyes": [],
+      "amber_blobs": 0
+    }
+  }
+}

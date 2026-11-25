@@ -1,0 +1,13 @@
+{
+  "members": {
+    "beachball": {
+      "center": [
+        93.52,
+        96.5
+      ],
+      "radius_px": 91.5,
+      "eyes": [],
+      "amber_blobs": 0
+    }
+  }
+}

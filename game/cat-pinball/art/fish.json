@@ -1,0 +1,11 @@
+{
+  "length_px": 94.0,
+  "width_px": 26.01,
+  "angle_deg": 0.016,
+  "pivots": {
+    "fish": [
+      0.5,
+      14.43
+    ]
+  }
+}

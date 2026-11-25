@@ -1,0 +1,13 @@
+{
+  "members": {
+    "squirrel": {
+      "center": [
+        82.49,
+        113.0
+      ],
+      "radius_px": 78.75,
+      "eyes": [],
+      "amber_blobs": 0
+    }
+  }
+}

@@ -1,0 +1,36 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/mole_enemy.gd" id="1_mole"]
+[ext_resource type="PackedScene" path="res://scenes/enemy_part.tscn" id="2_part"]
+
+[node name="Enemy" type="Node2D"]
+script = ExtResource("1_mole")
+projectile = "mud"
+armor_threshold = 1
+
+[node name="HoleA" parent="." instance=ExtResource("2_part")]
+position = Vector2(-165, -20)
+max_hp = 1
+hole = true
+
+[node name="HoleB" parent="." instance=ExtResource("2_part")]
+position = Vector2(165, -20)
+max_hp = 1
+hole = true
+
+[node name="HoleC" parent="." instance=ExtResource("2_part")]
+position = Vector2(0, -120)
+max_hp = 1
+hole = true
+
+[node name="HoleD" parent="." instance=ExtResource("2_part")]
+position = Vector2(0, 120)
+max_hp = 1
+hole = true
+
+[node name="Core" parent="." instance=ExtResource("2_part")]
+radius = 30.0
+max_hp = 6
+knock_force = 260.0
+is_core = true
+skin = "mole"

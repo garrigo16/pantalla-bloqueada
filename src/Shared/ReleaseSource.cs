@@ -5,5 +5,7 @@ internal static class ReleaseSource
     internal const string Repository = "pantalla-bloqueada";
     internal const string RepositoryUrl = "https://github.com/" + Owner + "/" + Repository;
     internal const string LatestApi = "https://api.github.com/repos/" + Owner + "/" + Repository + "/releases/latest";
+    internal const string LatestManifest = RepositoryUrl + "/releases/latest/download/update.json";
     internal const string InstallerName = "Iniciar.exe";
+    internal const string FullInstallerName = "DrifftAnalyzer-Setup.exe";
 }

@@ -16,7 +16,7 @@ internal sealed partial class LockController
     private void FunKeyUp(object sender, KeyEventArgs e)
     {
         var target = FunWindow();
-        if (target != null && target.HasPinball && (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl))
+        if (target != null && target.HasPinball && (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl || e.Key == Key.Space))
         { target.PinballInput(e.Key, false, false); e.Handled = true; }
     }
 }

@@ -6,7 +6,7 @@ Mini app para Windows con una simulación visual de pantalla de bloqueo y config
 
 ## Instalar o compartir
 
-Descarga **Iniciar.exe** o **DrifftAnalyzer.zip** desde [la última versión](https://github.com/garrigo16/pantalla-bloqueada/releases/latest). Abre el instalador: prepara la app para tu usuario, aplica los valores iniciales y la deja activa. No necesita permisos de administrador. El ZIP también incluye el desinstalador.
+Descarga **Iniciar.exe** o **DrifftAnalyzer.zip** desde [la última versión](https://github.com/garrigo16/pantalla-bloqueada/releases/latest). Abre Iniciar.exe: comprueba e instala el paquete completo para tu usuario y deja la app activa. No necesita permisos de administrador. El ZIP incluye el instalador completo y el desinstalador; así Iniciar.exe puede instalar sin volver a descargar el paquete. También puedes abrir directamente **DrifftAnalyzer-Setup.exe**.
 
 Puedes borrar el instalador después. El proceso de Windows se llama `DrifftAnalyzer.exe`. La copia instalada y sus ajustes quedan en `%LOCALAPPDATA%\PantallaBloqueada`; se mantiene esa ubicación interna para conservar la configuración de versiones anteriores.
 
@@ -49,20 +49,26 @@ Las reacciones aparecen solo en la pantalla elegida y se retiran solas, sin rein
 
 ## El rincón del gato
 
-Pinball con estética de booknook, lluvia animada en la ventana, luz cálida y parpadeos del gato. **Ctrl izquierdo y Ctrl derecho** accionan las palancas; **Espacio** lanza el ovillo, **P** pausa y **Esc** vuelve a la simulación. Hay tres ovillos por partida y puntos al tocar los topes.
+La adaptación local 1.6 incorpora el proyecto Godot Cat Pinball, con sus tres capítulos, enemigos y física originales, sobre nuestro fondo de booknook. Incluye lluvia animada, parpadeos simples y dobles del gato negro y un halo cálido que cambia suavemente en la lámpara. **Ctrl izquierdo y Ctrl derecho** accionan las palancas; mantén **Espacio** y suéltalo para lanzar, **P** pausa y **Esc** vuelve a la simulación.
 
-El atajo de salida conserva la prioridad durante la partida. Solo aparece en la pantalla elegida y las demás siguen negras. El juego no tiene sonido y cierra sus animaciones al salir; también vuelve a la simulación tras un minuto sin interacción.
+La campaña y la interfaz están traducidas al español de España. Durante la historia, **Espacio completa el texto que se está escribiendo**; después de soltarlo, la siguiente pulsación avanza una diapositiva. Mantener la tecla no salta diálogos. La partida se pausa al perder el foco.
+
+El atajo de salida conserva la prioridad durante la partida. Solo aparece en la pantalla elegida y las demás siguen negras. El juego no tiene sonido y termina su proceso al salir; también vuelve a la simulación tras un minuto sin interacción. El proceso de Godot queda vinculado a Drifft Analyzer para cerrarse si la app termina inesperadamente.
+
+El juego completo está incluido en el repositorio y en los instaladores, con los créditos originales conservados. [Detalles de integración](docs/CAT_PINBALL.md) y [avisos de terceros](THIRD_PARTY_NOTICES.md).
 
 ## Compilar y comprobar
 
-Windows 10/11 con .NET Framework 4.8 y PowerShell. Sin paquetes externos.
+Windows 10/11 de 64 bits con .NET Framework 4.8 y PowerShell. El juego utiliza Godot 4.7.2, incluido en el paquete; el usuario no necesita instalarlo por separado. La compilación descarga y verifica el motor y prepara el juego desde sus fuentes.
 
 ```powershell
 ./scripts/Build.ps1
 ./scripts/Test.ps1
 ```
 
-Los instaladores y el ZIP se generan en `artifacts/`. Las pruebas comprueban versiones, redirecciones, integridad, búsquedas, conservación de ajustes, recuperación ante fallos, inactividad, secuencias de easter eggs y filtros de entrada. No simulan actividad de ratón ni crean ventanas de bloqueo durante la integración continua. Los temporales de pruebas se retiran al terminar.
+Los instaladores y el ZIP se generan en `artifacts/`. Las pruebas comprueban versiones, redirecciones, integridad, búsquedas, conservación de ajustes, recuperación ante fallos, inactividad, campaña, tipografía, secuencias de easter eggs y filtros de entrada. No simulan actividad de ratón ni crean ventanas de bloqueo durante la integración continua. Los temporales de pruebas se retiran al terminar.
+
+Si una actualización falla, se conserva la versión anterior y el botón permite reintentar. El diagnóstico queda localmente en `%LOCALAPPDATA%\PantallaBloqueada\actualizador.log`, sin rutas, ajustes ni datos personales. Si una copia antigua ya quedó atascada, abrir el nuevo Iniciar.exe o el instalador completo permite recuperarla conservando sus ajustes.
 
 ## Publicar una versión
 

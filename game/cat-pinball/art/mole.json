@@ -1,0 +1,22 @@
+{
+  "members": {
+    "mole": {
+      "center": [
+        96.0,
+        66.34
+      ],
+      "radius_px": 64.34,
+      "eyes": [],
+      "amber_blobs": 0
+    },
+    "mole_dizzy": {
+      "center": [
+        95.97,
+        66.77
+      ],
+      "radius_px": 64.77,
+      "eyes": [],
+      "amber_blobs": 0
+    }
+  }
+}

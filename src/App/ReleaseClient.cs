@@ -23,7 +23,9 @@ public sealed class UpdateRelease
     public string DownloadUrl { get; set; }
     public string Sha256 { get; set; }
     public long Size { get; set; }
-    internal const long MaximumSize = 64L * 1024 * 1024;
+    public string AssetName { get; set; }
+    internal string FileName { get { return string.IsNullOrEmpty(AssetName) ? ReleaseSource.InstallerName : AssetName; } }
+    internal const long MaximumSize = 256L * 1024 * 1024;
 
     internal static System.Version ParseVersion(string value)
     {
@@ -38,7 +40,9 @@ public sealed class UpdateRelease
     internal void Validate()
     {
         if (ParseVersion(Tag) != ParseVersion(Version)) throw new UpdateException("Los datos de la versión no coinciden.");
-        string expected = ReleaseSource.RepositoryUrl + "/releases/download/" + Uri.EscapeDataString(Tag) + "/" + ReleaseSource.InstallerName;
+        if (FileName != ReleaseSource.InstallerName && FileName != ReleaseSource.FullInstallerName)
+            throw new UpdateException("El nombre del instalador no es válido.");
+        string expected = ReleaseSource.RepositoryUrl + "/releases/download/" + Uri.EscapeDataString(Tag) + "/" + FileName;
         Uri uri;
         if (!Uri.TryCreate(DownloadUrl, UriKind.Absolute, out uri) || uri.Scheme != "https" ||
             !string.Equals(DownloadUrl, expected, StringComparison.Ordinal) || !string.IsNullOrEmpty(uri.UserInfo))
@@ -57,14 +61,15 @@ public sealed class UpdateRelease
         var version = ParseVersion(release.Tag);
         if (version <= ParseVersion(currentVersion)) return null;
         if (release.Assets != null)
+            foreach (string name in new[] { ReleaseSource.FullInstallerName, ReleaseSource.InstallerName })
             foreach (var asset in release.Assets)
-                if (asset.Name == ReleaseSource.InstallerName && asset.State == "uploaded")
+                if (asset.Name == name && asset.State == "uploaded")
                 {
                     var result = new UpdateRelease
                     {
                         Tag = release.Tag, Version = version.ToString(3), DownloadUrl = asset.Url,
                         Sha256 = asset.Digest != null && asset.Digest.StartsWith("sha256:", StringComparison.Ordinal) ? asset.Digest.Substring(7) : null,
-                        Size = asset.Size
+                        Size = asset.Size, AssetName = name
                     };
                     result.Validate();
                     return result;
@@ -118,13 +123,42 @@ internal sealed class GitHubReleaseFeed : IReleaseFeed
 
     public async Task<UpdateRelease> LatestAsync(string currentVersion, CancellationToken cancellation)
     {
-        using (var response = await client.GetAsync(ReleaseSource.LatestApi, cancellation).ConfigureAwait(false))
+        try { return await ReadAsync(ReleaseSource.LatestApi, currentVersion, cancellation).ConfigureAwait(false); }
+        catch (Exception ex)
         {
-            if (response.StatusCode == HttpStatusCode.NotFound) throw new UpdateException("Todavía no hay versiones publicadas en GitHub.");
-            if ((int)response.StatusCode == 403 || (int)response.StatusCode == 429)
-                throw new UpdateException("GitHub ha limitado las consultas. Vuelve a buscar actualizaciones más tarde.");
+            if (cancellation.IsCancellationRequested) throw;
+            UpdateLog.Write("buscar-api", ex);
+        }
+        // El manifiesto de la misma release permite actualizar sin depender de la API y sus cuotas.
+        try { return await ReadAsync(ReleaseSource.LatestManifest, currentVersion, cancellation).ConfigureAwait(false); }
+        catch (Exception ex)
+        {
+            if (cancellation.IsCancellationRequested) throw;
+            UpdateLog.Write("buscar-manifiesto", ex);
+            throw new UpdateException("No se pudo consultar GitHub. La app sigue disponible; puedes reintentar o descargar Iniciar.exe desde la página de versiones.");
+        }
+    }
+    private async Task<UpdateRelease> ReadAsync(string url, string currentVersion, CancellationToken cancellation)
+    {
+        using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation))
+        {
+            timeout.CancelAfter(TimeSpan.FromSeconds(30));
+            using (var response = await UpdateTransport.OpenAsync(client, new Uri(url), timeout.Token).ConfigureAwait(false))
+            {
             response.EnsureSuccessStatusCode();
-            return UpdateRelease.FromJson(await response.Content.ReadAsStringAsync().ConfigureAwait(false), currentVersion);
+                using (var input = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+                using (var body = new MemoryStream())
+                using (timeout.Token.Register(delegate { input.Dispose(); }))
+                {
+                    var buffer = new byte[8192]; int count;
+                    while ((count = await input.ReadAsync(buffer, 0, buffer.Length, timeout.Token).ConfigureAwait(false)) > 0)
+                    {
+                        if (body.Length + count > 1024 * 1024) throw new UpdateException("La respuesta de actualizaciones no es válida.");
+                        body.Write(buffer, 0, count);
+                    }
+                    return UpdateRelease.FromJson(Encoding.UTF8.GetString(body.ToArray()), currentVersion);
+                }
+            }
         }
     }
     public void Dispose() { client.Dispose(); }
@@ -142,41 +176,26 @@ internal sealed class InstallerDownload : IInstallerDownload
         temporaryRoot = Path.GetFullPath(tempRoot);
     }
 
-    private static bool AllowedRedirect(Uri uri)
-    {
-        return uri != null && uri.IsAbsoluteUri && uri.Scheme == "https" && uri.IsDefaultPort &&
-            string.IsNullOrEmpty(uri.UserInfo) && (uri.Host == "github.com" || uri.Host.EndsWith(".githubusercontent.com", StringComparison.OrdinalIgnoreCase));
-    }
-
     public async Task<string> DownloadAsync(UpdateRelease release, CancellationToken cancellation)
     {
         release.Validate();
         string directory = Path.Combine(temporaryRoot, "DrifftAnalyzer-Update-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
-        string file = Path.Combine(directory, ReleaseSource.InstallerName);
+        string file = Path.Combine(directory, release.FileName);
+        using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation))
+        {
+        timeout.CancelAfter(TimeSpan.FromMinutes(10));
+        cancellation = timeout.Token;
         try
         {
-            var uri = new Uri(release.DownloadUrl);
-            HttpResponseMessage response = null;
-            for (int redirects = 0; redirects <= 5; redirects++)
-            {
-                response = await client.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellation).ConfigureAwait(false);
-                int status = (int)response.StatusCode;
-                if (status != 301 && status != 302 && status != 303 && status != 307 && status != 308) break;
-                Uri location = response.Headers.Location;
-                response.Dispose();
-                if (location != null && !location.IsAbsoluteUri) location = new Uri(uri, location);
-                if (!AllowedRedirect(location) || redirects == 5) throw new UpdateException("GitHub ha devuelto una redirección de descarga no permitida.");
-                uri = location;
-                response = null;
-            }
-            using (response)
+            using (var response = await UpdateTransport.OpenAsync(client, new Uri(release.DownloadUrl), cancellation).ConfigureAwait(false))
             {
                 response.EnsureSuccessStatusCode();
                 if (response.Content.Headers.ContentLength.HasValue && response.Content.Headers.ContentLength.Value != release.Size)
                     throw new UpdateException("El tamaño de la descarga no coincide con la versión publicada.");
                 using (var input = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
                 using (var output = new FileStream(file, FileMode.CreateNew, FileAccess.Write, FileShare.None, 8192, true))
+                using (cancellation.Register(delegate { input.Dispose(); }))
                 {
                     byte[] buffer = new byte[8192];
                     long total = 0;
@@ -195,13 +214,20 @@ internal sealed class InstallerDownload : IInstallerDownload
             using (var sha = SHA256.Create()) actual = BitConverter.ToString(sha.ComputeHash(input)).Replace("-", "");
             if (!string.Equals(actual, release.Sha256, StringComparison.OrdinalIgnoreCase))
                 throw new UpdateException("La descarga no supera la comprobación de integridad. No se instalará.");
+            using (var input = File.OpenRead(file))
+                if (input.ReadByte() != 'M' || input.ReadByte() != 'Z') throw new UpdateException("El archivo descargado no es un instalador de Windows.");
             return file;
         }
         catch
         {
-            if (File.Exists(file)) File.Delete(file);
-            if (Directory.Exists(directory) && Directory.GetFileSystemEntries(directory).Length == 0) Directory.Delete(directory, false);
+            try
+            {
+                if (File.Exists(file)) File.Delete(file);
+                if (Directory.Exists(directory) && Directory.GetFileSystemEntries(directory).Length == 0) Directory.Delete(directory, false);
+            }
+            catch (Exception ex) { UpdateLog.Write("limpiar-descarga", ex); }
             throw;
+        }
         }
     }
     public void Dispose() { client.Dispose(); }

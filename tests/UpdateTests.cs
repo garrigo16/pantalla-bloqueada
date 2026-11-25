@@ -46,6 +46,26 @@ internal sealed class StubDownload : IInstallerDownload
     public void Dispose() { }
 }
 
+internal sealed class WaitingBody : Stream
+{
+    public override bool CanRead { get { return true; } }
+    public override bool CanSeek { get { return false; } }
+    public override bool CanWrite { get { return false; } }
+    public override long Length { get { throw new NotSupportedException(); } }
+    public override long Position { get { throw new NotSupportedException(); } set { throw new NotSupportedException(); } }
+    public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellation)
+    {
+        var pending = new TaskCompletionSource<int>();
+        cancellation.Register(delegate { pending.TrySetCanceled(); });
+        return pending.Task;
+    }
+    public override int Read(byte[] buffer, int offset, int count) { throw new NotSupportedException(); }
+    public override void Flush() { }
+    public override long Seek(long offset, SeekOrigin origin) { throw new NotSupportedException(); }
+    public override void SetLength(long value) { throw new NotSupportedException(); }
+    public override void Write(byte[] buffer, int offset, int count) { throw new NotSupportedException(); }
+}
+
 internal static class UpdateTests
 {
     private static int count;
@@ -102,6 +122,14 @@ internal static class UpdateTests
         Check(UpdateRelease.ParseVersion("v1.10.0") > UpdateRelease.ParseVersion("1.9.0"), "Compara versiones numéricamente");
         Check(UpdateRelease.FromJson(json, "1.1.0").Version == "1.2.0", "Reconoce la versión estable nueva con su SHA-256");
         Check(UpdateRelease.FromJson(json, "1.2.0") == null && UpdateRelease.FromJson(json, "1.3.0") == null, "No ofrece reinstalar ni bajar de versión");
+        var large = NewRelease(); large.Size = 110L * 1024 * 1024; large.Validate();
+        Check(true, "Admite el tamaño real del instalador con el juego completo, superior a 64 MiB");
+        large.Size = UpdateRelease.MaximumSize + 1;
+        Reject(delegate { large.Validate(); }, "Mantiene un límite de tamaño para rechazar descargas desmesuradas");
+        string fullJson = json.Replace("Iniciar.exe", ReleaseSource.FullInstallerName);
+        Check(UpdateRelease.FromJson(fullJson, "1.1.0").FileName == ReleaseSource.FullInstallerName, "Las versiones nuevas reconocen el instalador completo");
+        string combinedJson = json.Substring(0, json.Length - 2) + "," + fullJson.Substring(fullJson.IndexOf('[') + 1);
+        Check(UpdateRelease.FromJson(combinedJson, "1.1.0").FileName == ReleaseSource.FullInstallerName, "El cliente nuevo prefiere el paquete completo aunque el instalador antiguo aparezca primero");
         Reject(delegate { UpdateRelease.ParseVersion("v1.2.0-beta"); }, "Rechaza etiquetas no estables");
         Reject(delegate { UpdateRelease.FromJson(Json(release.Tag, true, false, release.DownloadUrl, "sha256:" + release.Sha256), "1.1.0"); }, "Rechaza borradores");
         Reject(delegate { UpdateRelease.FromJson(Json(release.Tag, false, true, release.DownloadUrl, "sha256:" + release.Sha256), "1.1.0"); }, "Rechaza versiones preliminares");
@@ -110,11 +138,36 @@ internal static class UpdateTests
         var handler = new StubHandler { Respond = delegate(HttpRequestMessage request)
             { Check(request.RequestUri.AbsoluteUri == ReleaseSource.LatestApi, "Consulta exclusivamente la release pública de la app"); return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(json) }; } };
         using (var feed = new GitHubReleaseFeed(handler)) Check((await feed.LatestAsync("1.1.0", CancellationToken.None)).Version == "1.2.0", "Lee la respuesta HTTP real del cliente");
+        using (var cancel = new CancellationTokenSource())
+        using (var stalled = new InstallerDownload(new StubHandler { Respond = delegate { return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(new WaitingBody()) }; } }, Path.Combine(root, "descarga parada")))
+        {
+            var pending = stalled.DownloadAsync(release, cancel.Token);
+            cancel.CancelAfter(50);
+            Check(await Task.WhenAny(pending, Task.Delay(5000)) == pending, "Una descarga cuyo cuerpo deja de responder se puede cancelar sin bloquear la app");
+            try { await pending; throw new Exception("La descarga debía cancelarse."); } catch (OperationCanceledException) { }
+            Check(Directory.GetFiles(Path.Combine(root, "descarga parada"), "*.exe", SearchOption.AllDirectories).Length == 0,
+                "Cancelar elimina el archivo incompleto y nunca lo instala");
+        }
         foreach (var status in new[] { HttpStatusCode.NotFound, HttpStatusCode.Forbidden })
         {
             using (var feed = new GitHubReleaseFeed(new StubHandler { Respond = delegate { return new HttpResponseMessage(status); } }))
                 Reject(delegate { feed.LatestAsync("1.1.0", CancellationToken.None).GetAwaiter().GetResult(); }, "El error HTTP " + (int)status + " no se confunde con estar actualizado");
         }
+
+        var fallback = new StubHandler { Respond = delegate(HttpRequestMessage request)
+        {
+            if (request.RequestUri.AbsoluteUri == ReleaseSource.LatestApi) return new HttpResponseMessage(HttpStatusCode.Forbidden);
+            Check(request.RequestUri.AbsoluteUri == ReleaseSource.LatestManifest, "La alternativa a la API pertenece a la misma release oficial");
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(fullJson) };
+        } };
+        using (var feed = new GitHubReleaseFeed(fallback))
+            Check((await feed.LatestAsync("1.1.0", CancellationToken.None)).FileName == ReleaseSource.FullInstallerName && fallback.Calls == 2,
+                "Si la API limita consultas, el manifiesto permite seguir actualizando con integridad verificada");
+        var transient = new StubHandler();
+        transient.Respond = delegate { return transient.Calls < 3 ? new HttpResponseMessage(HttpStatusCode.ServiceUnavailable) : new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(json) }; };
+        using (var feed = new GitHubReleaseFeed(transient))
+            Check((await feed.LatestAsync("1.1.0", CancellationToken.None)).Version == "1.2.0" && transient.Calls == 3,
+                "Reintenta errores temporales de GitHub sin cerrar la app");
 
         string downloads = Path.Combine(root, "descargas válidas"); Directory.CreateDirectory(downloads);
         var redirect = new StubHandler { Respond = delegate(HttpRequestMessage request)
@@ -165,6 +218,22 @@ internal static class UpdateTests
             Check(currentFeed.Calls == 2, "La búsqueda manual funciona aunque aún no toque la automática");
             now = now.AddHours(12);
             Check(manager.IsDue, "Vuelve a buscar al cumplirse 12 horas");
+        }
+        using (var manager = Manager(new StubFeed(), new StubDownload(), delegate { }, Cache(), delegate { return now; }))
+        {
+            int notifications = 0;
+            manager.Changed += delegate { throw new InvalidOperationException("Vista ya cerrada para la prueba"); };
+            manager.Changed += delegate { notifications++; };
+            await manager.CheckAsync();
+            Check(manager.Phase == UpdatePhase.Current && !manager.IsBusy && notifications >= 2,
+                "Un fallo al refrescar una vista no cierra la app ni impide actualizar las demás vistas");
+        }
+        Func<string, string, Task> failedInstaller = async delegate { await Task.Delay(10); throw new IOException("Instalador rechazado para la prueba"); };
+        using (var manager = new UpdateManager(new StubFeed { Release = release }, new StubDownload(), failedInstaller, Cache(), Path.Combine(root, "ajustes.xml"), "1.1.0", delegate { return now; }))
+        {
+            await manager.InstallAsync();
+            Check(manager.Phase == UpdatePhase.Error && !manager.IsBusy && manager.Available != null,
+                "Si el instalador falla después de arrancar, el botón permite reintentar y la app continúa disponible");
         }
         using (var restored = Manager(new StubFeed(), new StubDownload(), delegate { }, cache, delegate { return now.AddHours(-11); }))
             Check(!restored.IsDue, "Recuerda la última comprobación al reiniciar");

@@ -1,0 +1,43 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/pug_enemy.gd" id="1_pug"]
+[ext_resource type="PackedScene" path="res://scenes/enemy_part.tscn" id="2_part"]
+
+[node name="Enemy" type="Node2D"]
+script = ExtResource("1_pug")
+attack_interval = 8.0
+projectile = "toyball"
+armor_threshold = 2
+
+[node name="BoxA" parent="." instance=ExtResource("2_part")]
+position = Vector2(-150, 8)
+max_hp = 2
+skin = "box"
+
+[node name="BoxB" parent="." instance=ExtResource("2_part")]
+position = Vector2(-75, 0)
+max_hp = 2
+skin = "box"
+
+[node name="BoxC" parent="." instance=ExtResource("2_part")]
+position = Vector2(0, -3)
+max_hp = 2
+skin = "box"
+
+[node name="BoxD" parent="." instance=ExtResource("2_part")]
+position = Vector2(75, 0)
+max_hp = 2
+skin = "box"
+
+[node name="BoxE" parent="." instance=ExtResource("2_part")]
+position = Vector2(150, 8)
+max_hp = 2
+skin = "box"
+
+[node name="Core" parent="." instance=ExtResource("2_part")]
+position = Vector2(0, -125)
+radius = 52.0
+max_hp = 8
+knock_force = 260.0
+is_core = true
+skin = "pug"

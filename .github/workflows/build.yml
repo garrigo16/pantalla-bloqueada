@@ -21,6 +21,8 @@ jobs:
           name: DrifftAnalyzer
           path: |
             artifacts/Iniciar.exe
+            artifacts/DrifftAnalyzer-Setup.exe
             artifacts/Desinstalar.exe
             artifacts/DrifftAnalyzer.zip
             artifacts/SHA256SUMS.txt
+            artifacts/update.json

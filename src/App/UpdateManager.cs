@@ -20,7 +20,7 @@ internal sealed class UpdateManager : IDisposable
 {
     private readonly IReleaseFeed feed;
     private readonly IInstallerDownload download;
-    private readonly Action<string, string> launch;
+    private readonly Func<string, string, Task> launch;
     private readonly Func<DateTime> utcNow;
     private readonly string statePath;
     private readonly string settingsPath;
@@ -40,10 +40,15 @@ internal sealed class UpdateManager : IDisposable
         get { return state.LastAttemptUtc == DateTime.MinValue || state.LastAttemptUtc > utcNow().AddMinutes(5) || utcNow() - state.LastAttemptUtc >= TimeSpan.FromHours(12); }
     }
 
-    internal UpdateManager() : this(new GitHubReleaseFeed(), new InstallerDownload(), StartInstaller,
+    internal UpdateManager() : this(new GitHubReleaseFeed(), new InstallerDownload(), new Func<string, string, Task>(StartInstaller),
         Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "updates.xml"), AppSettings.FilePath, ProductVersion.Current, delegate { return DateTime.UtcNow; }) { }
 
     internal UpdateManager(IReleaseFeed releaseFeed, IInstallerDownload installerDownload, Action<string, string> start,
+        string cachePath, string preferencesPath, string version, Func<DateTime> clock)
+        : this(releaseFeed, installerDownload, delegate(string file, string settings) { start(file, settings); return Task.FromResult(true); },
+            cachePath, preferencesPath, version, clock) { }
+
+    internal UpdateManager(IReleaseFeed releaseFeed, IInstallerDownload installerDownload, Func<string, string, Task> start,
         string cachePath, string preferencesPath, string version, Func<DateTime> clock)
     {
         feed = releaseFeed; download = installerDownload; launch = start; statePath = cachePath;
@@ -117,28 +122,46 @@ internal sealed class UpdateManager : IDisposable
             Set(UpdatePhase.Downloading, "Descargando y comprobando la versión " + release.Version + "…");
             string file = await download.DownloadAsync(release, cancellation.Token);
             if (disposed) return;
-            launch(file, settingsPath);
             Set(UpdatePhase.Installing, "Instalando " + release.Version + ". La aplicación se reiniciará conservando tus ajustes.");
+            await launch(file, settingsPath);
         }
         catch (OperationCanceledException) { if (!disposed) Set(UpdatePhase.Error, "La descarga tardó demasiado. Puedes volver a intentarlo."); }
         catch (Exception ex) { if (!disposed) ShowError(ex); }
         finally { if (!disposed && Phase != UpdatePhase.Installing) { IsBusy = false; Notify(); } }
     }
 
-    private static void StartInstaller(string file, string preferences)
+    private static async Task StartInstaller(string file, string preferences)
     {
-        if (Process.Start(new ProcessStartInfo(file, "--update --settings-from \"" + preferences + "\"")
-            { UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, WorkingDirectory = Path.GetDirectoryName(file) }) == null)
-            throw new UpdateException("No se pudo abrir el instalador. La aplicación sigue disponible.");
+        using (var process = Process.Start(new ProcessStartInfo(file, "--update --silent --settings-from \"" + preferences + "\"")
+            { UseShellExecute = false, CreateNoWindow = true, WindowStyle = ProcessWindowStyle.Hidden, WorkingDirectory = Path.GetDirectoryName(file) }))
+        {
+            if (process == null) throw new UpdateException("No se pudo abrir el instalador. La aplicación sigue disponible.");
+            UpdateLog.Write("instalador-iniciado");
+            await Task.Run(delegate
+            {
+                // No cancelar ni terminar el instalador al cerrarse esta instancia: está sustituyéndola.
+                if (!process.WaitForExit(120000)) throw new UpdateException("El instalador está tardando demasiado. La app sigue disponible; comprueba si Windows ha pedido confirmación antes de reintentar.");
+                if (process.ExitCode == 2) throw new UpdateException("Ya hay otra instalación en curso. Espera a que termine antes de volver a actualizar.");
+                if (process.ExitCode != 0) throw new UpdateException("No se pudo completar la instalación. Se conserva la versión anterior. Puedes reintentar o descargar Iniciar.exe desde la página de versiones.");
+            });
+        }
     }
 
     private void ShowError(Exception ex)
     {
+        UpdateLog.Write("actualizar-" + Phase, ex);
         var known = ex as UpdateException;
         Set(UpdatePhase.Error, known == null ? "No se pudo comprobar o descargar la actualización. Revisa la conexión y vuelve a intentarlo." : known.Message);
     }
     private void Set(UpdatePhase phase, string message) { if (disposed) return; Phase = phase; Message = message; Notify(); }
-    private void Notify() { if (Changed != null) Changed(this, EventArgs.Empty); }
+    private void Notify()
+    {
+        var handlers = Changed;
+        if (handlers == null) return;
+        foreach (EventHandler handler in handlers.GetInvocationList())
+            try { handler(this, EventArgs.Empty); }
+            catch (Exception ex) { UpdateLog.Write("refrescar-actualizador", ex); }
+    }
     private void Save()
     {
         string temp = statePath + "." + Guid.NewGuid().ToString("N") + ".tmp";

@@ -61,6 +61,15 @@ internal static class PackageTests
             byte[] remove = Resource(assembly, "Uninstaller.exe");
             Check(Digest(app) == Digest(File.ReadAllBytes(args[1])), "El instalador contiene exactamente la app verificada");
             Check(Digest(remove) == Digest(File.ReadAllBytes(args[2])), "El desinstalador está incluido en el instalador");
+            string initialPath = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(args[0])), "Iniciar.exe");
+            Check(new FileInfo(initialPath).Length < 64L * 1024 * 1024, "El instalador inicial cabe en el límite de los actualizadores antiguos");
+            var initial = Assembly.LoadFile(initialPath).GetType("BootstrapPackage", true);
+            string fullHash;
+            using (var input = File.OpenRead(args[0]))
+            using (var sha = SHA256.Create()) fullHash = BitConverter.ToString(sha.ComputeHash(input)).Replace("-", "");
+            Check(fullHash.Equals((string)initial.GetField("Sha256", BindingFlags.Static | BindingFlags.NonPublic).GetRawConstantValue(), StringComparison.OrdinalIgnoreCase) &&
+                new FileInfo(args[0]).Length == (long)initial.GetField("Size", BindingFlags.Static | BindingFlags.NonPublic).GetRawConstantValue(),
+                "El instalador inicial incorpora el tamaño y la huella exactos del paquete completo probado");
             var appAssembly = Assembly.LoadFile(Path.GetFullPath(args[1]));
             Check(((AssemblyProductAttribute)Attribute.GetCustomAttribute(appAssembly, typeof(AssemblyProductAttribute))).Product == "Drifft Analyzer" &&
                 ((AssemblyTitleAttribute)Attribute.GetCustomAttribute(appAssembly, typeof(AssemblyTitleAttribute))).Title == "Drifft Analyzer",
@@ -113,6 +122,13 @@ internal static class PackageTests
             updateHost.FailRegistration = true;
             try { update.Install(updateHost); throw new Exception("Debía fallar el registro."); } catch (IOException) { }
             Check(Digest(File.ReadAllBytes(update.ExecutablePath)) == Digest(previousBinary), "Un fallo durante la actualización recupera el ejecutable anterior");
+            Check(updateHost.Starts == 2 && updateHost.Started == update.ExecutablePath, "Al revertir la actualización vuelve a iniciar la versión anterior");
+            string blockedDirectory = Path.Combine(root, "carpeta bloqueada", "PantallaBloqueada");
+            Directory.CreateDirectory(Path.GetDirectoryName(blockedDirectory));
+            File.WriteAllText(blockedDirectory, "No es una carpeta de instalación");
+            var blockedHost = new TestInstallHost();
+            try { new PackageInstallation(blockedDirectory, app, remove).Install(blockedHost, true); throw new Exception("Debía fallar la preparación."); } catch (IOException) { }
+            Check(blockedHost.Stops == 0 && blockedHost.Starts == 0, "Si no puede preparar la carpeta, conserva la app anterior abierta");
             updateHost.Value = "otra aplicación";
             update.Uninstall(updateHost);
             Check(updateHost.Value == "otra aplicación" && !Directory.Exists(updated), "No elimina entradas ajenas y retira solo una carpeta vacía de la app");

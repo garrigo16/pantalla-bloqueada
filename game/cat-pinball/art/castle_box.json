@@ -1,0 +1,22 @@
+{
+  "members": {
+    "castle_box": {
+      "center": [
+        95.91,
+        100.0
+      ],
+      "radius_px": 85.5,
+      "eyes": [],
+      "amber_blobs": 0
+    },
+    "castle_box_hit": {
+      "center": [
+        95.91,
+        97.5
+      ],
+      "radius_px": 86.75,
+      "eyes": [],
+      "amber_blobs": 0
+    }
+  }
+}

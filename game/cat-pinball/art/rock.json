@@ -1,0 +1,13 @@
+{
+  "members": {
+    "rock": {
+      "center": [
+        96.1,
+        98.5
+      ],
+      "radius_px": 81.75,
+      "eyes": [],
+      "amber_blobs": 0
+    }
+  }
+}

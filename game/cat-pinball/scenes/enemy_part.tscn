@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/enemy_part.gd" id="1_part"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_part"]
+friction = 0.05
+bounce = 0.45
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+resource_local_to_scene = true
+radius = 26.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_det"]
+resource_local_to_scene = true
+radius = 30.0
+
+[node name="EnemyPart" type="StaticBody2D"]
+collision_layer = 1
+collision_mask = 2
+physics_material_override = SubResource("PhysicsMaterial_part")
+script = ExtResource("1_part")
+
+[node name="Shape" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_body")
+
+[node name="Detector" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="Shape" type="CollisionShape2D" parent="Detector"]
+shape = SubResource("CircleShape2D_det")

@@ -4,3 +4,4 @@ if (-not (Test-Path -LiteralPath (Join-Path $framework 'csc.exe'))) { $framework
 $compiler = Join-Path $framework 'csc.exe'
 if (-not (Test-Path -LiteralPath $compiler)) { throw 'Se necesita .NET Framework 4.8 para compilar.' }
 $references = @('PresentationCore','PresentationFramework','WindowsBase') | ForEach-Object { '/reference:' + (Join-Path $framework ('WPF\' + $_ + '.dll')) }
+$references += @('/reference:System.IO.Compression.dll')

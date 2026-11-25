@@ -1,11 +1,11 @@
-Atajos personalizables y un nuevo easter egg: El rincón del gato.
+Drifft Analyzer 1.6.3: actualizador más resistente y pinball completo.
 
-- Configura una combinación compartida para activar y salir, o dos independientes. Se aplican al guardar, sin reiniciar.
-- Si una combinación está ocupada o falla el guardado, siguen funcionando las anteriores. Los ajustes antiguos conservan el atajo inicial.
-- Abre el pinball con tu atajo de salida añadiendo Shift. Shift queda reservado para el juego en la salida.
-- Mesa lofi de booknook: gato que parpadea, lluvia animada en la ventana y luz cálida.
-- Ctrl izquierdo y Ctrl derecho mueven las palancas; Espacio lanza el ovillo, P pausa y Esc vuelve a la simulación.
-- Tres ovillos, topes y puntuación. Solo en la pantalla elegida, con las demás negras.
-- Tu atajo de salida funciona durante toda la partida y nunca aparece en la mesa.
+- Se incluye la campaña completa de Cat Pinball en español de España, con los dos Ctrl, fondo lofi animado, Nunito y centrado en la pantalla elegida.
+- Iniciar.exe sigue siendo pequeño para que las versiones antiguas puedan actualizarse. Descarga el paquete completo verificando su SHA-256; el ZIP incluye ambos instaladores para usarlo sin esa descarga adicional.
+- Las versiones nuevas descargan directamente el instalador completo y admiten su tamaño real.
+- Reintentos ante errores temporales de GitHub y consulta alternativa si su API falla o limita las peticiones.
+- Preparación de archivos antes de cerrar la app; si falla la instalación, restaura y vuelve a arrancar la versión anterior.
+- El botón permite reintentar si falla el instalador y los errores de las vistas no cierran la aplicación.
+- Diagnóstico local en actualizador.log, sin rutas, ajustes, texto escrito ni datos personales.
 
-Conserva tus preferencias, el icono del bao y todos los easter eggs anteriores.
+Conserva tus ajustes e inicio automático. Si una copia antigua ya quedó atascada al actualizar, abre una vez el nuevo Iniciar.exe; también puedes instalar directamente con DrifftAnalyzer-Setup.exe.

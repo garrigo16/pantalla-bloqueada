@@ -1,0 +1,13 @@
+{
+  "members": {
+    "flowerpot": {
+      "center": [
+        94.5,
+        96.0
+      ],
+      "radius_px": 93.25,
+      "eyes": [],
+      "amber_blobs": 0
+    }
+  }
+}

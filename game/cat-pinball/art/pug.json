@@ -1,0 +1,31 @@
+{
+  "members": {
+    "pug": {
+      "center": [
+        90.0,
+        74.0
+      ],
+      "radius_px": 66.0,
+      "eyes": [],
+      "amber_blobs": 0
+    },
+    "pug_angry": {
+      "center": [
+        90.0,
+        74.0
+      ],
+      "radius_px": 66.0,
+      "eyes": [],
+      "amber_blobs": 0
+    },
+    "pug_dizzy": {
+      "center": [
+        90.0,
+        74.0
+      ],
+      "radius_px": 66.0,
+      "eyes": [],
+      "amber_blobs": 0
+    }
+  }
+}
