@@ -113,7 +113,13 @@ internal sealed class PinballGame : IDisposable
                 PinballPayload payload = PinballPayload.Prepare();
                 return new Func<PinballNativeHost>(delegate { return new PinballNativeHost(payload); });
             }
-            engine = PokemonPinballRom.Validate(rom, game);
+            if (string.IsNullOrWhiteSpace(rom))
+            {
+                string directory = System.IO.Path.Combine(PokemonPinballProcess.CacheRoot, "roms-europa");
+                rom = await PokemonPinballRom.PrepareEuropeanAsync(game, directory, cancellation).ConfigureAwait(false);
+                engine = PokemonPinballEngine.Mgba;
+            }
+            else engine = PokemonPinballRom.Validate(rom, game);
             var info = engine == PokemonPinballEngine.PinballNs
                 ? (await PinballNsPayload.PrepareAsync(rom, cancellation).ConfigureAwait(false)).StartInfo()
                 : await PokemonPinballProcess.PrepareAsync(engine.Value, rom, cancellation).ConfigureAwait(false);

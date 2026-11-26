@@ -147,15 +147,15 @@ internal sealed class SettingsWindow : Window
         <TextBlock x:Name='originalRomLabel' Foreground='#A6B6D1' Margin='0,0,0,8' TextTrimming='CharacterEllipsis'/>
         <WrapPanel>
           <Button x:Name='originalSelectRom' Content='Elegir ROM…' AutomationProperties.Name='Elegir ROM de Game Boy Color'/>
-          <Button x:Name='originalResetRom' Content='Quitar' Margin='10,0,0,0'/>
+          <Button x:Name='originalResetRom' Content='Usar la europea' Margin='10,0,0,0'/>
         </WrapPanel>
         <TextBlock Text='Pokémon Pinball: Rubí y Zafiro · Game Boy Advance' FontWeight='SemiBold' TextWrapping='Wrap' Margin='0,12,0,3'/>
         <TextBlock x:Name='rubyRomLabel' Foreground='#A6B6D1' Margin='0,0,0,8' TextTrimming='CharacterEllipsis'/>
         <WrapPanel>
           <Button x:Name='rubySelectRom' Content='Elegir ROM…' AutomationProperties.Name='Elegir ROM de Rubí y Zafiro'/>
-          <Button x:Name='rubyResetRom' Content='Quitar' Margin='10,0,0,0'/>
+          <Button x:Name='rubyResetRom' Content='Usar la europea' Margin='10,0,0,0'/>
         </WrapPanel>
-        <TextBlock Text='Para jugar en español, elige las ediciones europeas e indica Español en el juego.' Foreground='#A6B6D1' FontSize='14' Margin='0,8,0,0' TextWrapping='Wrap'/>
+        <TextBlock Text='Por defecto se descarga la edición europea la primera vez que abres cada juego. Puedes elegir otra ROM. Selecciona Español dentro del juego.' Foreground='#A6B6D1' FontSize='14' Margin='0,8,0,0' TextWrapping='Wrap'/>
       </StackPanel>
       <TextBlock Text='Fondo' FontWeight='SemiBold' Margin='0,0,0,9'/>
       <TextBlock x:Name='imageLabel' Foreground='#A6B6D1' TextTrimming='CharacterEllipsis' Margin='0,0,0,10'/>
@@ -334,7 +334,7 @@ internal sealed class SettingsWindow : Window
         {
             path = path ?? "";
             set(path);
-            label.Text = path.Length == 0 ? "ROM sin seleccionar" : Path.GetFileName(path);
+            label.Text = path.Length == 0 ? "Edición europea · Descarga automática" : Path.GetFileName(path);
             label.ToolTip = path;
             reset.IsEnabled = path.Length != 0;
         };

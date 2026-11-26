@@ -67,9 +67,9 @@ El juego completo está incluido en el repositorio y en los instaladores, con lo
 
 ## Los dos Pokémon Pinball
 
-En **Configurar → Tema → Pokémon**, elige por separado la ROM de cada cartucho. Las ediciones europeas de ambos juegos permiten seleccionar **Español** dentro del juego. El claro está disponible sin configurar los pinballs.
+Al elegir un pinball en el tema **Pokémon**, Drifft Analyzer descarga y verifica su ROM europea la primera vez. Las siguientes partidas usan la copia local. Puedes seleccionar **Español** dentro de ambos juegos.
 
-Si el archivo viene en ZIP, extráelo antes de seleccionarlo. Drifft Analyzer comprueba la huella de la ROM al abrirla. Estas dos ediciones europeas se probaron con la versión 1.7.1.
+En **Configurar → Tema → Pokémon** puedes elegir tu propio archivo para cada juego o volver a la descarga automática con **Usar la europea**. Si tu archivo viene en ZIP, extráelo antes de seleccionarlo.
 
 | Juego | Edición europea con español | SHA-1 de la ROM | Descarga |
 | --- | --- | --- | --- |

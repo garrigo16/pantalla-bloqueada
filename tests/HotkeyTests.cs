@@ -80,7 +80,7 @@ internal static class HotkeyTests
             "Cada ROM estadounidense abre su port");
 
         try { PokemonPinballRom.Validate("", PokemonPinballTitle.Original); throw new Exception("Se aceptó una ROM vacía."); }
-        catch (IOException ex) { Check(ex.Message.Contains("Configurar"), "Pinball NS indica dónde seleccionar el archivo si falta"); }
+        catch (IOException ex) { Check(ex.Message.Contains("Configurar"), "La selección manual indica dónde elegir el archivo si falta"); }
         string fixture = Path.GetTempFileName();
         try
         {

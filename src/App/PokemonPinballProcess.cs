@@ -24,6 +24,15 @@ internal static class PokemonPinballProcess
     private static readonly Uri MgbaUrl = new Uri("https://github.com/mgba-emu/mgba/releases/download/" + MgbaVersion + "/" + MgbaArchive + ".7z");
     private static readonly SemaphoreSlim Setup = new SemaphoreSlim(1, 1);
 
+    internal static string CacheRoot
+    {
+        get
+        {
+            return PinballDownload.CheckedDirectory(Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DrifftAnalyzer-Pinball"));
+        }
+    }
+
     internal static async Task<ProcessStartInfo> PrepareAsync(PokemonPinballEngine engine, string rom, CancellationToken cancellation)
     {
         if (!Environment.Is64BitOperatingSystem) throw new IOException("El motor del juego requiere Windows de 64 bits.");
@@ -32,9 +41,7 @@ internal static class PokemonPinballProcess
         await Setup.WaitAsync(cancellation).ConfigureAwait(false);
         try
         {
-            string root = PinballDownload.CheckedDirectory(Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DrifftAnalyzer-Pinball"));
-            string directory = PinballDownload.CheckedDirectory(Path.Combine(root, ruby ? RubyArchive : MgbaArchive));
+            string directory = PinballDownload.CheckedDirectory(Path.Combine(CacheRoot, ruby ? RubyArchive : MgbaArchive));
             string executable = Path.Combine(directory, ruby ? RubyExe : MgbaExe);
             if (!PinballPayload.Matches(executable, ruby ? RubyExeHash : MgbaExeHash))
             {
