@@ -23,7 +23,7 @@ if ($LASTEXITCODE -ne 0) { throw 'No se pudo importar el pinball.' }
 foreach ($scene in @('drifft_test','typography_test')) {
     $testLog = Join-Path $build ($scene + '.log')
     & $engine --headless --fixed-fps 60 --path $work --quit-after 10000 --log-file $testLog ('res://dev/' + $scene + '.tscn')
-    $expected = if ($scene -eq 'drifft_test') { 'SUPERADAS 36 comprobaciones' } else { 'SUPERADAS 9 comprobaciones' }
+    $expected = if ($scene -eq 'drifft_test') { 'SUPERADAS 40 comprobaciones' } else { 'SUPERADAS 9 comprobaciones' }
     if ($LASTEXITCODE -ne 0 -or -not (Select-String -LiteralPath $testLog -SimpleMatch $expected -Quiet)) { throw ('Falló o quedó incompleta la comprobación Godot: ' + $scene) }
 }
 $pack = Join-Path $build 'CatPinball.pck'

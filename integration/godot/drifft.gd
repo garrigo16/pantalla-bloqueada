@@ -39,6 +39,9 @@ func begin() -> void:
 		key.physical_keycode = KEY_CTRL
 		key.location = KEY_LOCATION_LEFT if action == "flip_left" else KEY_LOCATION_RIGHT
 		InputMap.action_add_event(action, key)
+	var right_arrow := InputEventKey.new()
+	right_arrow.physical_keycode = KEY_RIGHT
+	InputMap.action_add_event("flip_right", right_arrow)
 	background = Control.new()
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(background)
@@ -74,7 +77,8 @@ func begin() -> void:
 	background.add_child(eyes)
 	_label("El rincón del gato", Vector2(40, 126), Vector2(360, 30), 20)
 	chapter_label = _label("", Vector2(60, 153), Vector2(320, 19), 11)
-	_label("Ctrl izquierdo                       Ctrl derecho", Vector2(60, 762), Vector2(320, 24), 11)
+	_label("Ctrl izquierdo", Vector2(60, 762), Vector2(160, 24), 11)
+	_label("Ctrl derecho o →", Vector2(220, 762), Vector2(160, 24), 11)
 	_label("Espacio · Cargar y soltar    P · Pausa    Esc · Volver", Vector2(8, 812), Vector2(424, 24), 12)
 	_label("Una aventura entre libros y lluvia.", Vector2(10, 838), Vector2(420, 22), 11)
 	container = SubViewportContainer.new()

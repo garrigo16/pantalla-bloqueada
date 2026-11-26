@@ -1,4 +1,4 @@
-Drifft Analyzer 1.7.4 añade una segunda tecla para la palanca derecha de los dos Pokémon Pinball.
+Drifft Analyzer 1.7.5 añade la flecha derecha a los controles del pinball de gatos.
 
-- **Ctrl derecho** y **→** accionan la palanca derecha.
-- Usa **D** para moverte a la derecha en los menús del juego.
+- En **Clásico**, la palanca derecha se acciona con **Ctrl derecho** o **→**.
+- Si mantienes ambas teclas pulsadas, la palanca baja al soltar la última.

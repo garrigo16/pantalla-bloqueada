@@ -57,7 +57,7 @@ Las reacciones aparecen solo en la pantalla elegida y se retiran solas, sin rein
 
 ## El rincón del gato
 
-La adaptación local 1.6 incorpora el proyecto Godot Cat Pinball, con sus tres capítulos, enemigos y física originales, sobre nuestro fondo de booknook. Incluye lluvia animada, parpadeos simples y dobles del gato negro y un halo cálido que cambia suavemente en la lámpara. **Ctrl izquierdo y Ctrl derecho** accionan las palancas; mantén **Espacio** y suéltalo para lanzar, **P** pausa y **Esc** vuelve a la simulación.
+La adaptación local 1.6 incorpora el proyecto Godot Cat Pinball, con sus tres capítulos, enemigos y física originales, sobre nuestro fondo de booknook. Incluye lluvia animada, parpadeos simples y dobles del gato negro y un halo cálido que cambia suavemente en la lámpara. **Ctrl izquierdo** acciona la palanca izquierda. **Ctrl derecho** o **→** accionan la derecha. Mantén **Espacio** y suéltalo para lanzar. **P** pausa y **Esc** vuelve a la simulación.
 
 La campaña y la interfaz están traducidas al español de España. Durante la historia, **Espacio completa el texto que se está escribiendo**; después de soltarlo, la siguiente pulsación avanza una diapositiva. Mantener la tecla no salta diálogos. La partida se pausa al perder el foco.
 

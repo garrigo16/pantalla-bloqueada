@@ -16,12 +16,12 @@ func frames(count: int) -> void:
 	for i in count:
 		await get_tree().process_frame
 
-func key(code: int, down: bool, location := KEY_LOCATION_UNSPECIFIED) -> void:
+func key(code: int, down: bool, location := KEY_LOCATION_UNSPECIFIED, ctrl_held := false) -> void:
 	var event := InputEventKey.new()
 	event.physical_keycode = code
 	event.keycode = code
 	event.location = location
-	event.ctrl_pressed = code == KEY_CTRL and down
+	event.ctrl_pressed = (code == KEY_CTRL and down) or ctrl_held
 	event.pressed = down
 	Input.parse_input_event(event)
 
@@ -76,6 +76,20 @@ func _run() -> void:
 	check(not Input.is_action_pressed("flip_left") and Input.is_action_pressed("flip_right"), "Soltar Ctrl izquierdo conserva el derecho")
 	key(KEY_CTRL, false, KEY_LOCATION_RIGHT); await frames(3)
 	check(not Input.is_action_pressed("flip_right"), "Soltar Ctrl derecho baja su palanca")
+	key(KEY_RIGHT, true); await frames(12)
+	check(table.get_node("FlipperRight")._pressed and not Input.is_action_pressed("flip_left"),
+		"La flecha derecha acciona solo la palanca derecha")
+	key(KEY_CTRL, true, KEY_LOCATION_RIGHT); await frames(2)
+	key(KEY_RIGHT, false, KEY_LOCATION_UNSPECIFIED, true); await frames(3)
+	check(Input.is_action_pressed("flip_right") and table.get_node("FlipperRight")._pressed,
+		"Soltar la flecha mantiene la palanca si Ctrl derecho sigue pulsado")
+	key(KEY_RIGHT, true, KEY_LOCATION_UNSPECIFIED, true); await frames(2)
+	key(KEY_CTRL, false, KEY_LOCATION_RIGHT); await frames(3)
+	check(Input.is_action_pressed("flip_right") and table.get_node("FlipperRight")._pressed,
+		"Soltar Ctrl derecho mantiene la palanca si la flecha sigue pulsada")
+	key(KEY_RIGHT, false); await frames(3)
+	check(not Input.is_action_pressed("flip_right") and not table.get_node("FlipperRight")._pressed,
+		"Soltar la última tecla baja la palanca derecha")
 	key(KEY_SPACE, true); await frames(60)
 	check(table._charging and table._charge > 0.5, "Mantener Espacio carga el lanzador original")
 	key(KEY_SPACE, false); await frames(5)

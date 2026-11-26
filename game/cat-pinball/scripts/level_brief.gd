@@ -110,7 +110,7 @@ func _draw() -> void:
 
 	# 操作說明由程式決定，電腦和手機不一樣
 	var touch := DisplayServer.is_touchscreen_available()
-	var keys := "Mitad izquierda / derecha: patitas" if touch else "Ctrl izquierdo: pata izq.    Ctrl derecho: pata dcha."
+	var keys := "Mitad izquierda / derecha: patitas" if touch else "Ctrl izq. · pata izq.    Ctrl der. o → · pata dcha."
 	var go := "Mantén pulsado Lanzar para empezar" if touch else "Mantén Espacio y suelta para lanzar"
 	if paused:
 		keys = "En pausa"
