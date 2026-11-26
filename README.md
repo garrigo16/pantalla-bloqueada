@@ -71,10 +71,10 @@ En **Configurar → Tema → Pokémon**, elige por separado la ROM de cada cartu
 
 Si el archivo viene en ZIP, extráelo antes de seleccionarlo. Drifft Analyzer comprueba la huella de la ROM al abrirla. Estas dos ediciones europeas se probaron con la versión 1.7.1.
 
-| Juego | Edición europea con español | SHA-1 de la ROM |
-| --- | --- | --- |
-| Pokémon Pinball (Game Boy Color) | `Pokemon Pinball (Europe) (En,Fr,De,Es,It) (Rumble Version) (SGB Enhanced) (GB Compatible).gbc` | `24c693b8048594e2bf61ec1dc2182e75d81e532d` |
-| Pokémon Pinball: Rubí y Zafiro (Game Boy Advance) | `Pokemon Pinball - Ruby & Sapphire (Europe) (En,Fr,De,Es,It).gba` | `b8b7881eaa9856b5ada99078ad1053d31cb79827` |
+| Juego | Edición europea con español | SHA-1 de la ROM | Descarga |
+| --- | --- | --- | --- |
+| Pokémon Pinball (Game Boy Color) | `Pokemon Pinball (Europe) (En,Fr,De,Es,It) (Rumble Version) (SGB Enhanced) (GB Compatible).gbc` | `24c693b8048594e2bf61ec1dc2182e75d81e532d` | [GBC Europa](https://github.com/garrigo16/pantalla-bloqueada/releases/download/v1.7.1/Pokemon-Pinball-Europa.gbc) |
+| Pokémon Pinball: Rubí y Zafiro (Game Boy Advance) | `Pokemon Pinball - Ruby & Sapphire (Europe) (En,Fr,De,Es,It).gba` | `b8b7881eaa9856b5ada99078ad1053d31cb79827` | [GBA Europa](https://github.com/garrigo16/pantalla-bloqueada/releases/download/v1.7.1/Pokemon-Pinball-Rubi-y-Zafiro-Europa.gba) |
 
 Añade **Shift al atajo de salida** para abrir el selector. Elige **Pokémon Pinball** (Game Boy Color) o **Pokémon Pinball: Rubí y Zafiro** (Game Boy Advance) con el ratón o con las flechas y **Enter**. Cada juego abre el motor correspondiente a la ROM elegida y lo descarga y verifica la primera vez.
 
