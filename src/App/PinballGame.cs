@@ -61,7 +61,7 @@ internal sealed class PinballGame : IDisposable
         secondChoice = AddChoice(PokemonPinballTitle.RubySapphire, "Game Boy Advance");
         chooser.Children.Add(new TextBlock
         {
-            Text = "Ctrl izquierdo y derecho para las palancas. Espacio para lanzar.\nFlechas y Enter en los menús. P para Start o pausa. Esc para salir.",
+            Text = "Palanca izquierda con Ctrl izq. y derecha con Ctrl der. o →.\nEspacio lanza. P para Start o pausa. Esc sale.\nD mueve a la derecha en los menús del juego.",
             Foreground = new SolidColorBrush(Color.FromRgb(187, 200, 215)),
             TextWrapping = TextWrapping.Wrap, FontSize = 14, Margin = new Thickness(0, 2, 0, 9)
         });

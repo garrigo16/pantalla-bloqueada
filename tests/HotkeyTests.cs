@@ -81,13 +81,20 @@ internal static class HotkeyTests
             PinballNativeHost.PokemonInput(Key.Enter, ruby) == Key.Enter && PinballNativeHost.PokemonInput(Key.P, ruby) == Key.Escape &&
             PinballNativeHost.PokemonInput(Key.Back, ruby) == Key.Escape,
             "Ambos ports usan sus botones correctos para los menús de PC");
-        var input = new Dictionary<Key, Key>();
-        bool repeat = false;
-        Check(PinballNativeHost.ChangeKeyState(input, Key.RightCtrl, Key.X, true, ref repeat) == Key.X &&
-            PinballNativeHost.ChangeKeyState(input, Key.Space, Key.X, true, ref repeat) == Key.None &&
-            PinballNativeHost.ChangeKeyState(input, Key.RightCtrl, Key.X, false, ref repeat) == Key.None &&
-            PinballNativeHost.ChangeKeyState(input, Key.Space, Key.X, false, ref repeat) == Key.X && input.Count == 0,
-            "Soltar un atajo no suelta el botón del juego mientras otra tecla lo mantiene pulsado");
+        foreach (var engine in new[] { mgba, ns, ruby })
+        {
+            var flipper = PinballNativeHost.PokemonInput(Key.RightCtrl, engine);
+            var arrow = PinballNativeHost.PokemonInput(Key.Right, engine);
+            Check(arrow == flipper && PinballNativeHost.PokemonInput(Key.D, engine) == Key.Right,
+                "Flecha derecha y Ctrl derecho accionan la palanca, y D mueve a la derecha en " + engine);
+            var input = new Dictionary<Key, Key>();
+            bool repeat = false;
+            Check(PinballNativeHost.ChangeKeyState(input, Key.RightCtrl, flipper, true, ref repeat) == flipper &&
+                PinballNativeHost.ChangeKeyState(input, Key.Right, arrow, true, ref repeat) == Key.None &&
+                PinballNativeHost.ChangeKeyState(input, Key.RightCtrl, flipper, false, ref repeat) == Key.None &&
+                PinballNativeHost.ChangeKeyState(input, Key.Right, arrow, false, ref repeat) == flipper && input.Count == 0,
+                "La palanca derecha sigue pulsada hasta soltar ambas teclas en " + engine);
+        }
         Check(PokemonPinballRom.Identify("24c693b8048594e2bf61ec1dc2182e75d81e532d", PokemonPinballTitle.Original) == mgba &&
             PokemonPinballRom.Identify("b8b7881eaa9856b5ada99078ad1053d31cb79827", PokemonPinballTitle.RubySapphire) == mgba,
             "Reconoce las dos ROMs europeas para jugarlas en español");

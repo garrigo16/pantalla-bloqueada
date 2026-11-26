@@ -156,7 +156,8 @@ internal sealed class PinballNativeHost : HwndHost
     {
         if (key == Key.LeftCtrl) return engine == PokemonPinballEngine.Mgba ? Key.Left :
             engine == PokemonPinballEngine.JvppbPort ? Key.LeftCtrl : Key.Z;
-        if (key == Key.RightCtrl) return engine == PokemonPinballEngine.JvppbPort ? Key.RightCtrl : Key.X;
+        if (key == Key.RightCtrl || key == Key.Right) return engine == PokemonPinballEngine.JvppbPort ? Key.RightCtrl : Key.X;
+        if (key == Key.D) return Key.Right;
         if (engine == PokemonPinballEngine.JvppbPort)
         {
             if (key == Key.P || key == Key.Back) return Key.Escape;
@@ -175,7 +176,7 @@ internal sealed class PinballNativeHost : HwndHost
         switch (key)
         {
             case Key.Space: case Key.Enter: case Key.Up: case Key.Down: case Key.Left:
-            case Key.Right: case Key.C: case Key.V: case Key.T: case Key.X: case Key.Z: case Key.A: case Key.S: case Key.Back: case Key.Tab:
+            case Key.C: case Key.V: case Key.T: case Key.X: case Key.Z: case Key.A: case Key.S: case Key.Back: case Key.Tab:
             case Key.F5: case Key.F8: case Key.F9: case Key.F10: return key;
             default: return Key.None;
         }
