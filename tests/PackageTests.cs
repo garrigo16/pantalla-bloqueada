@@ -98,7 +98,8 @@ internal static class PackageTests
                 "El instalador incluye todos los easter eggs y el despertar breve");
             Check(xml.SelectSingleNode("/AppSettings/Theme").InnerText == "Clasico" &&
                 xml.SelectSingleNode("/AppSettings/LunarDelaySeconds").InnerText == "5" &&
-                xml.SelectSingleNode("/AppSettings/PokemonRomPath").InnerText == "",
+                xml.SelectSingleNode("/AppSettings/PokemonRomPath").InnerText == "" &&
+                xml.SelectSingleNode("/AppSettings/PokemonRubyRomPath").InnerText == "",
                 "El instalador parte de Clásico y conserva la espera inicial de cinco segundos para Pokémon");
             var serializer = new XmlSerializer(typeof(AppSettings));
             using (var old = new StringReader("<AppSettings><ShowLunarScene>true</ShowLunarScene><TimeoutSeconds>47</TimeoutSeconds><LunarDelaySeconds>11</LunarDelaySeconds></AppSettings>"))
@@ -109,12 +110,13 @@ internal static class PackageTests
             }
             using (var output = new MemoryStream())
             {
-                var configured = new AppSettings { Theme = AppTheme.Pokemon, LunarDelaySeconds = 0, PokemonRomPath = @"C:\Juegos privados\Mi cartucho.gbc" };
+                var configured = new AppSettings { Theme = AppTheme.Pokemon, LunarDelaySeconds = 0,
+                    PokemonRomPath = @"C:\Juegos privados\Mi cartucho.gbc", PokemonRubyRomPath = @"C:\Juegos privados\Rubí.gba" };
                 serializer.Serialize(output, configured);
                 output.Position = 0;
                 var restored = (AppSettings)serializer.Deserialize(output);
-                Check(restored.Theme == AppTheme.Pokemon && restored.LunarDelaySeconds == 0 && restored.PokemonRomPath == configured.PokemonRomPath,
-                    "Se guardan el tema Pokémon, la espera de cero segundos y la ruta local seleccionada");
+                Check(restored.Theme == AppTheme.Pokemon && restored.LunarDelaySeconds == 0 && restored.PokemonRomPath == configured.PokemonRomPath && restored.PokemonRubyRomPath == configured.PokemonRubyRomPath,
+                    "Se guardan el tema Pokémon, la espera de cero segundos y las rutas locales de ambos juegos");
             }
 
             xml.SelectSingleNode("/AppSettings/TimeoutSeconds").InnerText = "75";

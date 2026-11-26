@@ -62,18 +62,31 @@ internal static class HotkeyTests
     }
     private static void CheckPokemonPinball()
     {
-        Check(PinballNativeHost.PokemonInput(Key.LeftCtrl) == Key.Z && PinballNativeHost.PokemonInput(Key.RightCtrl) == Key.X &&
-            PinballNativeHost.PokemonInput(Key.Space) == Key.Space && PinballNativeHost.PokemonInput(Key.F11) == Key.None,
+        var ns = PokemonPinballEngine.PinballNs;
+        var ruby = PokemonPinballEngine.JvppbPort;
+        var mgba = PokemonPinballEngine.Mgba;
+        Check(PinballNativeHost.PokemonInput(Key.LeftCtrl, ns) == Key.Z && PinballNativeHost.PokemonInput(Key.RightCtrl, ns) == Key.X &&
+            PinballNativeHost.PokemonInput(Key.Space, ns) == Key.Space && PinballNativeHost.PokemonInput(Key.F11, ns) == Key.None,
             "Pinball NS conserva los dos Ctrl y Espacio dentro de la ventana de la simulación");
+        Check(PinballNativeHost.PokemonInput(Key.LeftCtrl, ruby) == Key.LeftCtrl &&
+            PinballNativeHost.PokemonInput(Key.RightCtrl, ruby) == Key.RightCtrl &&
+            PinballNativeHost.PokemonInput(Key.Space, mgba) == Key.X,
+            "Rubí y Zafiro y las ediciones originales conservan los controles de Drifft Analyzer");
+        Check(PokemonPinballRom.Identify("24c693b8048594e2bf61ec1dc2182e75d81e532d", PokemonPinballTitle.Original) == mgba &&
+            PokemonPinballRom.Identify("b8b7881eaa9856b5ada99078ad1053d31cb79827", PokemonPinballTitle.RubySapphire) == mgba,
+            "Reconoce las dos ROMs europeas para jugarlas en español");
+        Check(PokemonPinballRom.Identify("9402014d14969432142abfde728c6f1a10ee4dac", PokemonPinballTitle.Original) == ns &&
+            PokemonPinballRom.Identify("9fec81ce2c5df589e0371a0bf2f92a5fe8db730b", PokemonPinballTitle.RubySapphire) == ruby,
+            "Cada ROM estadounidense abre su port");
 
-        try { PinballNsPayload.ValidateRom(""); throw new Exception("Se aceptó una ROM vacía."); }
+        try { PokemonPinballRom.Validate("", PokemonPinballTitle.Original); throw new Exception("Se aceptó una ROM vacía."); }
         catch (IOException ex) { Check(ex.Message.Contains("Configurar"), "Pinball NS indica dónde seleccionar el archivo si falta"); }
         string fixture = Path.GetTempFileName();
         try
         {
             File.WriteAllText(fixture, "Archivo de prueba");
-            try { PinballNsPayload.ValidateRom(fixture); throw new Exception("Se aceptó un archivo incompatible."); }
-            catch (IOException ex) { Check(ex.Message.Contains("no es compatible"), "Pinball NS rechaza un archivo incompatible antes de descargar"); }
+            try { PokemonPinballRom.Validate(fixture, PokemonPinballTitle.RubySapphire); throw new Exception("Se aceptó un archivo incompatible."); }
+            catch (IOException ex) { Check(ex.Message.Contains("no es compatible"), "Rubí y Zafiro rechaza un archivo incompatible antes de descargar"); }
             using (var zip = new MemoryStream(new byte[264649]))
             {
                 try { PinballNsPayload.Unpack(zip, fixture); throw new Exception("Se aceptó un ZIP adulterado."); }

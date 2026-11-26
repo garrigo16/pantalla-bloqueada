@@ -16,7 +16,7 @@ Abre el configurador desde el icono del área de notificación. Permite elegir l
 
 Los valores iniciales son una pantalla con fondo durante **20 segundos**, el resto en negro y un movimiento horizontal de **un píxel cada cinco minutos**, alternando sentidos mientras la simulación esté activa. Las pantallas se pintan de negro, sin apagarlas físicamente. La actividad periódica y la petición de energía se detienen al salir de la simulación.
 
-**Tema** permite alternar entre **Clásico**, el predeterminado con el fondo habitual, los easter eggs y el pinball de gatos, y **Pokémon**, con el claro animado y Pinball NS. En Pokémon, el claro aparece en el monitor elegido con un fundido tras **5 segundos en negro**. Puedes cambiar la espera. Con 0 segundos, empieza al pasar a negro. Si mantienes el fondo visible indefinidamente, el claro no aparece.
+**Tema** permite alternar entre **Clásico**, el predeterminado con el fondo habitual, los easter eggs y el pinball de gatos, y **Pokémon**, con el claro animado y un selector de Pokémon Pinball y Pokémon Pinball: Rubí y Zafiro. En Pokémon, el claro aparece en el monitor elegido con un fundido tras **5 segundos en negro**. Puedes cambiar la espera. Con 0 segundos, empieza al pasar a negro. Si mantienes el fondo visible indefinidamente, el claro no aparece.
 
 El paisaje se incluye en el instalador. Los sprites se descargan desde SpriteCollab durante la primera activación y se guardan en la caché local para usos posteriores. Si la primera descarga no está disponible, el paisaje aparece igualmente.
 
@@ -65,11 +65,17 @@ El atajo de salida conserva la prioridad durante la partida. Solo aparece en la 
 
 El juego completo está incluido en el repositorio y en los instaladores, con los créditos originales conservados. [Detalles de integración](docs/CAT_PINBALL.md) y [avisos de terceros](THIRD_PARTY_NOTICES.md).
 
-## Pinball NS
+## Los dos Pokémon Pinball
 
-En **Configurar → Tema → Pokémon**, elige la ROM de tu cartucho de Pokémon Pinball USA/Australia con vibración. También se admite una ROM de Pokémon Pinball Generations 1.6. El claro está disponible aunque dejes vacío ese ajuste.
+En **Configurar → Tema → Pokémon**, elige por separado la ROM de cada cartucho. Las ediciones europeas de ambos juegos permiten seleccionar **Español** dentro del juego. El claro está disponible sin configurar los pinballs.
 
-La primera partida descarga y verifica [Pinball NS 2.9 para Windows](https://github.com/ReiniShari/Pinball-NS/releases/tag/v2.9). La aplicación usa la ROM desde su ubicación original. Pinball NS guarda la partida junto a ella. **Ctrl izquierdo y Ctrl derecho** accionan las palancas, **Espacio** lanza, **P** pausa y **Esc** vuelve a la simulación.
+Añade **Shift al atajo de salida** para abrir el selector. Elige **Pokémon Pinball** (Game Boy Color) o **Pokémon Pinball: Rubí y Zafiro** (Game Boy Advance) con el ratón o con las flechas y **Enter**. Cada juego abre el motor correspondiente a la ROM elegida y lo descarga y verifica la primera vez.
+
+- **Europa**, ambos juegos, usa [mGBA](https://github.com/mgba-emu/mgba/releases/tag/0.10.5) con la vista original.
+- **USA/Australia con vibración** o **Generations 1.6**, para el original, usa [Pinball NS](https://github.com/ReiniShari/Pinball-NS/releases/tag/v2.9).
+- **USA**, para Rubí y Zafiro, usa [JVPPBPort](https://github.com/jonnisvibes/jvppbport/releases/tag/v0.3.0).
+
+Los dos **Ctrl** controlan las palancas con la configuración inicial del juego, **Espacio** lanza y **Esc** vuelve a la simulación.
 
 ## Compilar y comprobar
 

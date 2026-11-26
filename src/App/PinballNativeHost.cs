@@ -14,7 +14,7 @@ internal sealed class PinballNativeHost : HwndHost
 {
     private readonly Func<IntPtr, ProcessStartInfo> startInfo;
     private readonly string statusPath;
-    private readonly bool pokemon;
+    private readonly PokemonPinballEngine? pokemonEngine;
     private IntPtr handle, child, job;
     private int childWidth, childHeight;
     private Process process;
@@ -38,10 +38,10 @@ internal sealed class PinballNativeHost : HwndHost
         startInfo = delegate(IntPtr parent) { return CatStartInfo(files, parent); };
         statusPath = files.Status;
     }
-    internal PinballNativeHost(PinballNsPayload files)
+    internal PinballNativeHost(ProcessStartInfo info, PokemonPinballEngine engine)
     {
-        startInfo = delegate { return files.StartInfo(); };
-        pokemon = true;
+        startInfo = delegate { return info; };
+        pokemonEngine = engine;
         Focusable = false;
     }
     protected override HandleRef BuildWindowCore(HandleRef parent)
@@ -82,14 +82,14 @@ internal sealed class PinballNativeHost : HwndHost
                 EnumWindows(delegate(IntPtr candidate, IntPtr ignored)
                 {
                     uint pid; GetWindowThreadProcessId(candidate, out pid);
-                    if (pid != process.Id || (pokemon && !IsPinballNsWindow(candidate))) return true;
+                    if (pid != process.Id || (pokemonEngine.HasValue && !IsPokemonWindow(candidate, pokemonEngine.Value))) return true;
                     child = candidate; return false;
                 }, IntPtr.Zero);
                 if (child != IntPtr.Zero)
                 {
                     long style = GetStyle(child).ToInt64();
                     long embeddedStyle = (style & ~0x80c40000L) | 0x56000000L;
-                    if (pokemon) embeddedStyle |= 0x08000000L; // El teclado permanece en la ventana de simulación.
+                    if (pokemonEngine.HasValue) embeddedStyle |= 0x08000000L; // El teclado permanece en la ventana de simulación.
                     SetStyle(child, new IntPtr(embeddedStyle));
                     SetParent(child, handle);
                     if (GetParent(child) != handle) { child = IntPtr.Zero; return; }
@@ -97,8 +97,8 @@ internal sealed class PinballNativeHost : HwndHost
             }
             if (child != IntPtr.Zero)
             {
-                ShowWindow(child, pokemon ? 4 : 5);
-                if (!pokemon) SetFocus(child);
+                ShowWindow(child, pokemonEngine.HasValue ? 4 : 5);
+                if (!pokemonEngine.HasValue) SetFocus(child);
             }
         }
         if (child != IntPtr.Zero)
@@ -117,33 +117,36 @@ internal sealed class PinballNativeHost : HwndHost
     internal void Forward(Key key, bool down, bool repeat)
     {
         if (child == IntPtr.Zero || stopping) return;
-        if (pokemon) key = PokemonInput(key);
+        if (pokemonEngine.HasValue) key = PokemonInput(key, pokemonEngine.Value);
         if (key == Key.None) return;
         int vk = KeyInterop.VirtualKeyFromKey(key), scan = (int)MapVirtualKey((uint)vk, 0);
         if (key == Key.LeftCtrl || key == Key.RightCtrl) { vk = 0x11; scan = 0x1d; }
         long flags = 1 | ((long)scan << 16);
-        if (key == Key.RightCtrl) flags |= 1L << 24;
+        if (key == Key.RightCtrl || key == Key.Up || key == Key.Down || key == Key.Left || key == Key.Right)
+            flags |= 1L << 24;
         if (repeat || !down) flags |= 1L << 30;
         if (!down) flags |= 1L << 31;
         PostMessage(child, down ? 0x0100u : 0x0101u, new IntPtr(vk), new IntPtr(flags));
     }
-    internal static Key PokemonInput(Key key)
+    internal static Key PokemonInput(Key key, PokemonPinballEngine engine)
     {
+        if (key == Key.LeftCtrl) return engine == PokemonPinballEngine.Mgba ? Key.Left :
+            engine == PokemonPinballEngine.JvppbPort ? Key.LeftCtrl : Key.Z;
+        if (key == Key.RightCtrl) return engine == PokemonPinballEngine.JvppbPort ? Key.RightCtrl : Key.X;
+        if (engine == PokemonPinballEngine.Mgba && key == Key.Space) return Key.X;
         switch (key)
         {
-            case Key.LeftCtrl: return Key.Z;
-            case Key.RightCtrl: return Key.X;
             case Key.Space: case Key.Enter: case Key.P: case Key.Up: case Key.Down: case Key.Left:
-            case Key.Right: case Key.C: case Key.V: case Key.T: case Key.Back: case Key.Tab:
+            case Key.Right: case Key.C: case Key.V: case Key.T: case Key.X: case Key.Z: case Key.A: case Key.S: case Key.Back: case Key.Tab:
             case Key.F5: case Key.F8: case Key.F9: case Key.F10: return key;
             default: return Key.None;
         }
     }
-    private static bool IsPinballNsWindow(IntPtr hwnd)
+    private static bool IsPokemonWindow(IntPtr hwnd, PokemonPinballEngine engine)
     {
         var name = new StringBuilder(32);
         GetClassName(hwnd, name, name.Capacity);
-        return name.ToString() == "PinballNS";
+        return name.ToString() == (engine == PokemonPinballEngine.PinballNs ? "PinballNS" : "SDL_app");
     }
     internal void Stop()
     {
@@ -152,10 +155,10 @@ internal sealed class PinballNativeHost : HwndHost
         IntPtr currentJob = job;
         process = null;
         job = IntPtr.Zero;
-        if (pokemon && child != IntPtr.Zero && current != null &&
+        if (pokemonEngine.HasValue && child != IntPtr.Zero && current != null &&
             PostMessage(child, 0x0010, IntPtr.Zero, IntPtr.Zero))
         {
-            // Pinball NS guarda la partida al cerrar. El juego tiene un margen breve sin bloquear la interfaz.
+            // Deja guardar la partida al proceso hijo sin bloquear la interfaz.
             Task.Run(delegate { StopProcess(current, currentJob, 1000); });
         }
         else StopProcess(current, currentJob, 0);

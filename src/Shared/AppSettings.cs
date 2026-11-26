@@ -22,6 +22,7 @@ public sealed class AppSettings
     internal const int DefaultLunarDelay = 5;
     public AppTheme Theme { get; set; }
     public string PokemonRomPath { get; set; }
+    public string PokemonRubyRomPath { get; set; }
     public int LunarDelaySeconds { get; set; }
     public int ActivateModifiers { get; set; }
     public int ActivateKey { get; set; }
@@ -45,6 +46,7 @@ public sealed class AppSettings
         WakeOnInput = true;
         Theme = AppTheme.Clasico;
         PokemonRomPath = "";
+        PokemonRubyRomPath = "";
         LunarDelaySeconds = DefaultLunarDelay;
         ActivateModifiers = UnlockModifiers = 8;
         ActivateKey = UnlockKey = 0;

@@ -62,7 +62,6 @@ internal sealed class SettingsWindow : Window
     private readonly ComboBox humorMode;
     private readonly CheckBox wakeOnInput;
     private readonly ComboBox theme;
-    private readonly TextBlock romLabel;
     private readonly TextBox lunarDelay;
     private readonly TextBlock timeoutHint, activityHint;
     private int titleClicks;
@@ -77,7 +76,7 @@ internal sealed class SettingsWindow : Window
     private readonly ShortcutOptions shortcutOptions;
     private readonly Expander shortcutExpander;
     private readonly Action<AppSettings, bool> savePreferences;
-    private string imagePath, pokemonRomPath;
+    private string imagePath, pokemonRomPath, pokemonRubyRomPath;
 
     internal SettingsWindow(AppSettings settings, UpdateManager updateManager = null, FunStats statistics = null, Action<AppSettings, bool> saveSettings = null)
     {
@@ -144,12 +143,19 @@ internal sealed class SettingsWindow : Window
           <TextBox x:Name='lunarDelay' AutomationProperties.Name='Espera en negro' Width='92' MaxLength='5'/>
           <TextBlock Text='segundos en negro antes del claro' Margin='12,0,0,0' VerticalAlignment='Center'/>
         </StackPanel>
-        <TextBlock x:Name='romLabel' Foreground='#A6B6D1' Margin='0,12,0,9' TextTrimming='CharacterEllipsis'/>
+        <TextBlock Text='Pokémon Pinball · Game Boy Color' FontWeight='SemiBold' Margin='0,12,0,3'/>
+        <TextBlock x:Name='originalRomLabel' Foreground='#A6B6D1' Margin='0,0,0,8' TextTrimming='CharacterEllipsis'/>
         <WrapPanel>
-          <Button x:Name='selectRom' Content='Elegir archivo del juego…'/>
-          <Button x:Name='resetRom' Content='Quitar' Margin='10,0,0,0'/>
+          <Button x:Name='originalSelectRom' Content='Elegir ROM…' AutomationProperties.Name='Elegir ROM de Game Boy Color'/>
+          <Button x:Name='originalResetRom' Content='Quitar' Margin='10,0,0,0'/>
         </WrapPanel>
-        <TextBlock Text='Elige la ROM de tu cartucho USA/Australia con vibración o de Pokémon Pinball Generations 1.6. Pinball NS se descarga la primera vez.' Foreground='#A6B6D1' FontSize='14' Margin='0,8,0,0' TextWrapping='Wrap'/>
+        <TextBlock Text='Pokémon Pinball: Rubí y Zafiro · Game Boy Advance' FontWeight='SemiBold' TextWrapping='Wrap' Margin='0,12,0,3'/>
+        <TextBlock x:Name='rubyRomLabel' Foreground='#A6B6D1' Margin='0,0,0,8' TextTrimming='CharacterEllipsis'/>
+        <WrapPanel>
+          <Button x:Name='rubySelectRom' Content='Elegir ROM…' AutomationProperties.Name='Elegir ROM de Rubí y Zafiro'/>
+          <Button x:Name='rubyResetRom' Content='Quitar' Margin='10,0,0,0'/>
+        </WrapPanel>
+        <TextBlock Text='Para jugar en español, elige las ediciones europeas e indica Español en el juego.' Foreground='#A6B6D1' FontSize='14' Margin='0,8,0,0' TextWrapping='Wrap'/>
       </StackPanel>
       <TextBlock Text='Fondo' FontWeight='SemiBold' Margin='0,0,0,9'/>
       <TextBlock x:Name='imageLabel' Foreground='#A6B6D1' TextTrimming='CharacterEllipsis' Margin='0,0,0,10'/>
@@ -218,7 +224,6 @@ internal sealed class SettingsWindow : Window
         humorMode = (ComboBox)root.FindName("humorMode");
         wakeOnInput = (CheckBox)root.FindName("wakeOnInput");
         theme = (ComboBox)root.FindName("theme");
-        romLabel = (TextBlock)root.FindName("romLabel");
         lunarDelay = (TextBox)root.FindName("lunarDelay");
         timeoutHint = (TextBlock)root.FindName("timeoutHint");
         activityHint = (TextBlock)root.FindName("activityHint");
@@ -252,34 +257,10 @@ internal sealed class SettingsWindow : Window
         theme.SelectionChanged += delegate { showPokemonOptions(); };
         showPokemonOptions();
         lunarDelay.Text = settings.LunarDelaySeconds.ToString(CultureInfo.InvariantCulture);
-        pokemonRomPath = settings.PokemonRomPath ?? "";
-        var resetRom = (Button)root.FindName("resetRom");
-        Action refreshRom = delegate
-        {
-            romLabel.Text = pokemonRomPath.Length == 0 ? "Archivo del juego pendiente" : Path.GetFileName(pokemonRomPath);
-            romLabel.ToolTip = pokemonRomPath;
-            resetRom.IsEnabled = pokemonRomPath.Length != 0;
-        };
-        refreshRom();
-        resetRom.Click += delegate { pokemonRomPath = ""; refreshRom(); };
-        ((Button)root.FindName("selectRom")).Click += delegate
-        {
-            var dialog = new OpenFileDialog
-            {
-                Title = "Elegir ROM para Pinball NS", Filter = "ROM de Game Boy|*.gbc;*.gb", CheckFileExists = true
-            };
-            if (dialog.ShowDialog(this) != true) return;
-            try
-            {
-                PinballNsPayload.ValidateRom(dialog.FileName);
-                pokemonRomPath = dialog.FileName;
-                refreshRom();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, ex.Message, "Pinball NS", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-        };
+        SetupRomPicker(root, "original", PokemonPinballTitle.Original, settings.PokemonRomPath,
+            delegate(string path) { pokemonRomPath = path; });
+        SetupRomPicker(root, "ruby", PokemonPinballTitle.RubySapphire, settings.PokemonRubyRomPath,
+            delegate(string path) { pokemonRubyRomPath = path; });
         ((TextBlock)root.FindName("funStats")).Text = statistics == null ? "Los logros aparecerán después de una simulación." : statistics.Summary();
         autoActivate.Checked += delegate { idleSeconds.IsEnabled = true; };
         autoActivate.Unchecked += delegate { idleSeconds.IsEnabled = false; };
@@ -343,6 +324,39 @@ internal sealed class SettingsWindow : Window
         else if (timeout.Text == "86400") timeoutHint.Text = "24 horas. Eso ya es mudarse.";
         else if (timeout.Text == "0") timeoutHint.Text = "Fondo eterno. Valiente.";
         if (activityInterval.Text == "15") activityHint.Text = "Eso ya no es actividad, es un tic.";
+    }
+
+    private void SetupRomPicker(Grid root, string prefix, PokemonPinballTitle game, string current, Action<string> set)
+    {
+        var label = (TextBlock)root.FindName(prefix + "RomLabel");
+        var reset = (Button)root.FindName(prefix + "ResetRom");
+        Action<string> show = delegate(string path)
+        {
+            path = path ?? "";
+            set(path);
+            label.Text = path.Length == 0 ? "ROM sin seleccionar" : Path.GetFileName(path);
+            label.ToolTip = path;
+            reset.IsEnabled = path.Length != 0;
+        };
+        show(current);
+        reset.Click += delegate { show(""); };
+        ((Button)root.FindName(prefix + "SelectRom")).Click += delegate
+        {
+            string title = PokemonPinballRom.Title(game);
+            var dialog = new OpenFileDialog
+            {
+                Title = "Elegir ROM de " + title,
+                Filter = game == PokemonPinballTitle.Original ? "ROM de Game Boy|*.gbc;*.gb" : "ROM de Game Boy Advance|*.gba",
+                CheckFileExists = true
+            };
+            if (dialog.ShowDialog(this) != true) return;
+            try
+            {
+                PokemonPinballRom.Validate(dialog.FileName, game);
+                show(dialog.FileName);
+            }
+            catch (Exception ex) { MessageBox.Show(this, ex.Message, title, MessageBoxButton.OK, MessageBoxImage.Warning); }
+        };
     }
 
     private void UpdateImageLabel()
@@ -446,7 +460,7 @@ internal sealed class SettingsWindow : Window
                 Humor = humorMode.SelectedIndex >= 0 ? (HumorMode)humorMode.SelectedIndex : HumorMode.Todos,
                 WakeOnInput = wakeOnInput.IsChecked == true,
                 Theme = theme.SelectedIndex == (int)AppTheme.Pokemon ? AppTheme.Pokemon : AppTheme.Clasico,
-                LunarDelaySeconds = lunarSeconds, PokemonRomPath = pokemonRomPath
+                LunarDelaySeconds = lunarSeconds, PokemonRomPath = pokemonRomPath, PokemonRubyRomPath = pokemonRubyRomPath
             };
             bool desiredStartup = startup.IsChecked == true;
             shortcutOptions.ApplyTo(settings);
