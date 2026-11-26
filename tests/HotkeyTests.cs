@@ -72,6 +72,22 @@ internal static class HotkeyTests
             PinballNativeHost.PokemonInput(Key.RightCtrl, ruby) == Key.RightCtrl &&
             PinballNativeHost.PokemonInput(Key.Space, mgba) == Key.X,
             "Rubí y Zafiro y las ediciones originales conservan los controles de Drifft Analyzer");
+        Check(PinballNativeHost.PokemonInput(Key.Enter, mgba) == Key.X &&
+            PinballNativeHost.PokemonInput(Key.P, mgba) == Key.Enter &&
+            PinballNativeHost.PokemonInput(Key.Back, mgba) == Key.Z &&
+            PinballNativeHost.PokemonInput(Key.Tab, mgba) == Key.Back,
+            "Las ediciones europeas permiten confirmar, pausar, volver y pulsar Select con el teclado");
+        Check(PinballNativeHost.PokemonInput(Key.Enter, ns) == Key.X && PinballNativeHost.PokemonInput(Key.P, ns) == Key.Enter &&
+            PinballNativeHost.PokemonInput(Key.Enter, ruby) == Key.Enter && PinballNativeHost.PokemonInput(Key.P, ruby) == Key.Escape &&
+            PinballNativeHost.PokemonInput(Key.Back, ruby) == Key.Escape,
+            "Ambos ports usan sus botones correctos para los menús de PC");
+        var input = new Dictionary<Key, Key>();
+        bool repeat = false;
+        Check(PinballNativeHost.ChangeKeyState(input, Key.RightCtrl, Key.X, true, ref repeat) == Key.X &&
+            PinballNativeHost.ChangeKeyState(input, Key.Space, Key.X, true, ref repeat) == Key.None &&
+            PinballNativeHost.ChangeKeyState(input, Key.RightCtrl, Key.X, false, ref repeat) == Key.None &&
+            PinballNativeHost.ChangeKeyState(input, Key.Space, Key.X, false, ref repeat) == Key.X && input.Count == 0,
+            "Soltar un atajo no suelta el botón del juego mientras otra tecla lo mantiene pulsado");
         Check(PokemonPinballRom.Identify("24c693b8048594e2bf61ec1dc2182e75d81e532d", PokemonPinballTitle.Original) == mgba &&
             PokemonPinballRom.Identify("b8b7881eaa9856b5ada99078ad1053d31cb79827", PokemonPinballTitle.RubySapphire) == mgba,
             "Reconoce las dos ROMs europeas para jugarlas en español");

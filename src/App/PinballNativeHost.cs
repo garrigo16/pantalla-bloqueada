@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -15,6 +16,7 @@ internal sealed class PinballNativeHost : HwndHost
     private readonly Func<IntPtr, ProcessStartInfo> startInfo;
     private readonly string statusPath;
     private readonly PokemonPinballEngine? pokemonEngine;
+    private readonly Dictionary<Key, Key> pressed = new Dictionary<Key, Key>();
     private IntPtr handle, child, job;
     private int childWidth, childHeight;
     private Process process;
@@ -114,11 +116,33 @@ internal sealed class PinballNativeHost : HwndHost
             { childWidth = rectangle.Right; childHeight = rectangle.Bottom; MoveWindow(child, 0, 0, childWidth, childHeight, true); }
         }
     }
-    internal void Forward(Key key, bool down, bool repeat)
+    internal void Forward(Key input, bool down, bool repeat)
     {
         if (child == IntPtr.Zero || stopping) return;
-        if (pokemonEngine.HasValue) key = PokemonInput(key, pokemonEngine.Value);
-        if (key == Key.None) return;
+        Key key = pokemonEngine.HasValue ? PokemonInput(input, pokemonEngine.Value) : input;
+        if (pokemonEngine.HasValue) repeat = false;
+        key = ChangeKeyState(pressed, input, key, down, ref repeat);
+        if (key != Key.None) SendKey(key, down, repeat);
+    }
+    internal void ReleaseControls()
+    {
+        if (child != IntPtr.Zero && !stopping)
+            foreach (Key key in new HashSet<Key>(pressed.Values)) SendKey(key, false, false);
+        pressed.Clear();
+    }
+    internal static Key ChangeKeyState(Dictionary<Key, Key> keys, Key input, Key mapped, bool down, ref bool repeat)
+    {
+        if (mapped == Key.None) return Key.None;
+        if (!down)
+            return keys.Remove(input) && !keys.ContainsValue(mapped) ? mapped : Key.None;
+        if (keys.ContainsKey(input)) return repeat ? mapped : Key.None;
+        repeat = false;
+        bool alreadyHeld = keys.ContainsValue(mapped);
+        keys.Add(input, mapped);
+        return alreadyHeld ? Key.None : mapped;
+    }
+    private void SendKey(Key key, bool down, bool repeat)
+    {
         int vk = KeyInterop.VirtualKeyFromKey(key), scan = (int)MapVirtualKey((uint)vk, 0);
         if (key == Key.LeftCtrl || key == Key.RightCtrl) { vk = 0x11; scan = 0x1d; }
         long flags = 1 | ((long)scan << 16);
@@ -133,10 +157,24 @@ internal sealed class PinballNativeHost : HwndHost
         if (key == Key.LeftCtrl) return engine == PokemonPinballEngine.Mgba ? Key.Left :
             engine == PokemonPinballEngine.JvppbPort ? Key.LeftCtrl : Key.Z;
         if (key == Key.RightCtrl) return engine == PokemonPinballEngine.JvppbPort ? Key.RightCtrl : Key.X;
-        if (engine == PokemonPinballEngine.Mgba && key == Key.Space) return Key.X;
+        if (engine == PokemonPinballEngine.JvppbPort)
+        {
+            if (key == Key.P || key == Key.Back) return Key.Escape;
+        }
+        else
+        {
+            if (key == Key.Enter) return Key.X;
+            if (key == Key.P) return Key.Enter;
+            if (engine == PokemonPinballEngine.Mgba)
+            {
+                if (key == Key.Space) return Key.X;
+                if (key == Key.Back) return Key.Z;
+                if (key == Key.Tab) return Key.Back; // Select.
+            }
+        }
         switch (key)
         {
-            case Key.Space: case Key.Enter: case Key.P: case Key.Up: case Key.Down: case Key.Left:
+            case Key.Space: case Key.Enter: case Key.Up: case Key.Down: case Key.Left:
             case Key.Right: case Key.C: case Key.V: case Key.T: case Key.X: case Key.Z: case Key.A: case Key.S: case Key.Back: case Key.Tab:
             case Key.F5: case Key.F8: case Key.F9: case Key.F10: return key;
             default: return Key.None;

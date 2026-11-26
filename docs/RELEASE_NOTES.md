@@ -1,5 +1,5 @@
-Drifft Analyzer 1.7.2 descarga automáticamente las ediciones europeas de los dos Pokémon Pinball.
+Drifft Analyzer 1.7.3 ajusta los controles de los dos Pokémon Pinball para el teclado.
 
-- Al elegir un juego por primera vez, descarga su ROM europea de GitHub y verifica su integridad.
-- Las partidas siguientes reutilizan el archivo local. Los archivos elegidos en el configurador se siguen usando.
-- Puedes volver a la edición europea con **Usar la europea** en el configurador.
+- Las flechas navegan, **Enter** confirma y **Retroceso** vuelve dentro de los menús.
+- **Ctrl izquierdo y derecho** accionan las palancas, **Espacio** lanza, **P** equivale a Start y abre la pausa. **Esc** vuelve a la simulación.
+- Mantener otra tecla que comparte el mismo control conserva la pulsación hasta soltar ambas.

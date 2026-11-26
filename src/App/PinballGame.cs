@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -16,7 +15,6 @@ internal sealed class PinballGame : IDisposable
     private readonly TextBlock message;
     private readonly DispatcherTimer timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
     private readonly CancellationTokenSource setup = new CancellationTokenSource();
-    private readonly HashSet<Key> heldKeys = new HashSet<Key>();
     private readonly AppSettings settings;
     private string gameName;
     private StackPanel chooser;
@@ -61,6 +59,12 @@ internal sealed class PinballGame : IDisposable
             FontSize = 29, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 16) });
         firstChoice = AddChoice(PokemonPinballTitle.Original, "Game Boy Color");
         secondChoice = AddChoice(PokemonPinballTitle.RubySapphire, "Game Boy Advance");
+        chooser.Children.Add(new TextBlock
+        {
+            Text = "Ctrl izquierdo y derecho para las palancas. Espacio para lanzar.\nFlechas y Enter en los menús. P para Start o pausa. Esc para salir.",
+            Foreground = new SolidColorBrush(Color.FromRgb(187, 200, 215)),
+            TextWrapping = TextWrapping.Wrap, FontSize = 14, Margin = new Thickness(0, 2, 0, 9)
+        });
         var back = new Button { Content = "Volver", HorizontalAlignment = HorizontalAlignment.Left,
             Padding = new Thickness(12, 7, 12, 7), Margin = new Thickness(0, 5, 0, 0) };
         back.Click += delegate { Close(); };
@@ -177,18 +181,11 @@ internal sealed class PinballGame : IDisposable
                     StartGame(PokemonPinballTitle.RubySapphire); break;
             }
         }
-        else if (Host != null)
-        {
-            if (down) heldKeys.Add(key);
-            else heldKeys.Remove(key);
-            Host.Forward(key, down, repeat);
-        }
+        else if (Host != null) Host.Forward(key, down, repeat);
     }
     internal void ReleaseControls()
     {
-        if (Host == null || disposed) return;
-        foreach (Key key in heldKeys) Host.Forward(key, false, false);
-        heldKeys.Clear();
+        if (Host != null && !disposed) Host.ReleaseControls();
     }
     private void Close() { if (disposed) return; Dispose(); closed(); }
     public void Dispose()
