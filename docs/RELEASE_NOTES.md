@@ -1,4 +1,5 @@
-# Drifft Analyzer 1.7.7
+# Drifft Analyzer 1.7.8
 
-- Los dos Pokémon Pinball muestran una leyenda de controles debajo de la mesa durante la partida.
-- El selector Pokémon usa botones de estilo portátil clásico, con un cursor visible al navegar con el teclado y el mismo diseño para **Volver**.
+- El claro Pokémon tiene una brisa suave en las copas, ondas en el lago y un reflejo lunar vivo. Las luciérnagas trazan órbitas cambiantes cerca de la orilla.
+- Se suman 65 visitantes de Kanto de bosque, pradera y ribera. Los visitantes siguen llegando de uno en uno.
+- Al actualizar desde la app o al abrir el instalador a mano, se conserva la configuración existente y la preferencia de inicio con Windows.

@@ -56,12 +56,15 @@ internal sealed class PackageInstallation
         bool existed = Directory.Exists(DirectoryPath);
         bool startupChanged = false, stopped = false;
         string previousExecutable = File.Exists(ExecutablePath) ? ExecutablePath : OwnedPath(AppIdentity.LegacyExecutableName);
+        string settingsPath = OwnedPath("ajustes.xml");
+        bool hasSettings = File.Exists(settingsPath);
+        bool isUpdate = updating || hasSettings || File.Exists(previousExecutable);
         try
         {
             Directory.CreateDirectory(DirectoryPath);
             Stage(AppIdentity.ExecutableName, application, staged);
             Stage("Desinstalar.exe", uninstaller, staged);
-            if (!File.Exists(OwnedPath("ajustes.xml")))
+            if (!hasSettings)
                 Stage("ajustes.xml", previousSettingsPath != null && File.Exists(previousSettingsPath)
                     ? File.ReadAllBytes(previousSettingsPath) : AppSettings.DefaultXml(), staged);
             // Comprobar carpeta, permisos y espacio antes de cerrar la instancia que funciona.
@@ -70,7 +73,7 @@ internal sealed class PackageInstallation
             RemoveLegacyExecutable(backups);
             // Actualizar respeta si el usuario había desactivado el inicio automático.
             bool wasEnabled = StartupRegistration.IsAppCommand(previousStartup);
-            if (!updating || wasEnabled)
+            if (!isUpdate || wasEnabled)
             {
                 startupChanged = true;
                 host.StartupCommand = ExpectedStartup;

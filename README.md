@@ -20,7 +20,7 @@ Los valores iniciales son una pantalla con fondo durante **20 segundos**, el res
 
 **Tema** permite alternar entre **Clásico**, el predeterminado con el fondo habitual, los easter eggs y el pinball de gatos, y **Pokémon**, con el claro animado y un selector de Pokémon Pinball y Pokémon Pinball: Rubí y Zafiro. En Pokémon, el claro aparece en el monitor elegido con un fundido tras **5 segundos en negro**. Puedes cambiar la espera. Con 0 segundos, empieza al pasar a negro. Si mantienes el fondo visible indefinidamente, el claro no aparece.
 
-El paisaje se incluye en el instalador. Los sprites se descargan desde SpriteCollab durante la primera activación y se guardan en la caché local para usos posteriores. Si la primera descarga no está disponible, el paisaje aparece igualmente.
+El paisaje se incluye en el instalador. Las copas se mueven con la brisa, la luna se refleja sobre las ondas y las luciérnagas vuelan cerca de la orilla. Hay 71 visitantes de Kanto de bosque, pradera y ribera. Llegan de uno en uno y sus sprites se descargan gradualmente desde SpriteCollab y quedan en la caché local. El paisaje funciona aunque los sprites aún no estén disponibles.
 
 ## Atajos de teclado
 
@@ -46,7 +46,7 @@ El contador solo actúa mientras la simulación está desactivada. No interrumpe
 - **Buscar actualizaciones** comprueba inmediatamente e indica si ya está instalada la última versión.
 - Cuando hay una versión nueva, aparece el aviso y se habilita **Actualizar a…**. La instalación requiere pulsar ese botón.
 - La descarga se limita al instalador de este repositorio y se verifica con el SHA-256 publicado por GitHub antes de ejecutarla.
-- Se conservan los ajustes y la preferencia de inicio con Windows. La app se reinicia al terminar.
+- Se conservan los ajustes y la preferencia de inicio con Windows, también al abrir el instalador a mano sobre una instalación existente. La app se reinicia al terminar.
 - Sin conexión, la búsqueda muestra el error y permite reintentarlo. No requiere una cuenta ni un token de GitHub para los usuarios de la app.
 
 Para pasar desde una copia antigua sin actualizador, abre una vez el instalador de esta versión. Las siguientes actualizaciones se realizan desde la app.

@@ -126,6 +126,13 @@ internal static class PackageTests
             install.Install(host);
             Check(Digest(File.ReadAllBytes(Path.Combine(target, "ajustes.xml"))) == Digest(customSettings), "Reinstalar conserva los ajustes del usuario");
             Check(File.ReadAllText(Path.Combine(target, "mi-imagen-personal.txt")) == "Conservar", "Reinstalar conserva archivos ajenos al paquete");
+            host.Value = null;
+            install.Install(host, true);
+            Check(host.Value == null && Digest(File.ReadAllBytes(Path.Combine(target, "ajustes.xml"))) == Digest(customSettings),
+                "Actualizar desde la app conserva el XML byte por byte y respeta el inicio automático desactivado");
+            install.Install(host);
+            Check(host.Value == null && Digest(File.ReadAllBytes(Path.Combine(target, "ajustes.xml"))) == Digest(customSettings),
+                "Actualizar con el instalador abierto a mano respeta los mismos ajustes");
             install.Uninstall(host);
             Check(host.Value == null && !File.Exists(install.ExecutablePath) && !File.Exists(Path.Combine(target, "Desinstalar.exe")),
                 "Desinstalar retira ejecutables e inicio automático");

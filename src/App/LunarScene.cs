@@ -12,7 +12,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 // Autor: Miquel Garrigo
-internal sealed class LunarScene : FrameworkElement, IDisposable
+internal sealed partial class LunarScene : FrameworkElement, IDisposable
 {
     private sealed class Actor
     {
@@ -20,7 +20,7 @@ internal sealed class LunarScene : FrameworkElement, IDisposable
         internal double Meters, Size = 1, Offset;
         internal int StandingPixels;
         internal Point Position;
-        internal bool Flip, FinePixels;
+        internal bool Flip, FinePixels, ByWater;
         internal Dictionary<LunarFrame, BitmapSource> StillImages;
     }
 
@@ -49,8 +49,10 @@ internal sealed class LunarScene : FrameworkElement, IDisposable
     private const double PixelsPerMeter = 54;
     private static readonly Rect View = new Rect(0, 0, LunarBackdrop.Width, LunarBackdrop.Height);
     private static readonly Brush Shadow = new SolidColorBrush(Color.FromArgb(102, 7, 20, 35));
+    private const int ShoreStops = 2;
     private static readonly Stop[] Stops = {
         new Stop(new Rect(221, 204, 36, 11), new Point(242, 174)),
+        new Stop(new Rect(329, 198, 26, 9), new Point(329, 166)),
         new Stop(new Rect(192, 217, 31, 12), new Point(120, 194)),
         new Stop(new Rect(278, 229, 33, 12), new Point(268, 194))
     };
@@ -59,13 +61,15 @@ internal sealed class LunarScene : FrameworkElement, IDisposable
     };
     private static readonly double GlanceDuration = Enumerable.Range(0, Glances.GetLength(0)).Sum(i => Glances[i, 1]);
 
-    private readonly LunarBackdrop art = LunarBackdrop.Resource.Value;
+    private LunarBackdrop art;
     private readonly LunarClip wake = new LunarClip("0025", "Wake", 40, 40, 8, 6, 4, 14, 10);
     private readonly LunarClip look = new LunarClip("0025", "Walk", 32, 40, 8, 10, 8, 10);
     private readonly Actor[] sleepers, guests;
+    private readonly LunarFireflies fireflies;
     private readonly List<Actor> ready = new List<Actor>();
     private readonly DispatcherTimer tick = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(40) };
     private readonly CancellationTokenSource cancel = new CancellationTokenSource();
+    private readonly CancellationToken loadToken;
     private readonly Stopwatch time = new Stopwatch();
     private readonly Random random = new Random();
     private Visit visitor;
@@ -86,20 +90,13 @@ internal sealed class LunarScene : FrameworkElement, IDisposable
             Sleeper("0025", 32, 40, .4, 25, 124, 200, false, 1, 0),
             Sleeper("0133", 32, 24, .3, 18, 142, 200, true, 1, 550)
         };
-        guests = new[] {
-            Guest("0001", 40, 40, .7, 21, 4, 4, 4, 4, 4, 4),
-            Guest("0004", 32, 32, .6, 22, 6, 8, 6, 8),
-            Guest("0007", 32, 32, .5, 18, 12, 8, 12, 8),
-            Guest("0037", 32, 40, .6, 20, 6, 4, 4, 4, 6),
-            Guest("0043", 24, 40, .5, 20, 8, 4, 8, 6, 8, 4, 8, 6),
-            Guest("0054", 24, 40, .8, 24, 8, 12, 8, 12)
-        };
+        guests = GuestCatalog();
+        loadToken = cancel.Token;
+        PrepareBackdrop();
         untilWake = random.Next(2, 6);
+        fireflies = new LunarFireflies(new Random(random.Next()));
         tick.Tick += Tick;
-        foreach (var actor in sleepers) Prepare(actor.Clip);
-        Prepare(wake);
-        Prepare(look);
-        foreach (var actor in guests) Prepare(actor.Clip, actor);
+        PrepareActors();
     }
 
     private static Actor Sleeper(string id, int width, int height, double meters, int standingPixels,
@@ -111,14 +108,50 @@ internal sealed class LunarScene : FrameworkElement, IDisposable
             StillImages = new Dictionary<LunarFrame, BitmapSource>() };
     }
 
-    private static Actor Guest(string id, int width, int height, double meters, int standingPixels, params int[] ticks)
+    private static Actor Guest(string id, int width, int height, double meters, int standingPixels, bool byWater, params int[] ticks)
     {
-        return new Actor { Clip = new LunarClip(id, "Walk", width, height, ticks), Meters = meters, StandingPixels = standingPixels };
+        return new Actor { Clip = new LunarClip(id, "Walk", width, height, ticks), Meters = meters,
+            StandingPixels = standingPixels, ByWater = byWater };
     }
 
-    private async void Prepare(LunarClip clip, Actor guest = null)
+    private async void PrepareBackdrop()
     {
-        var token = cancel.Token;
+        try
+        {
+            var backdrop = await Task.Run(() => LunarBackdrop.Resource.Value).ConfigureAwait(false);
+            if (loadToken.IsCancellationRequested || Dispatcher.HasShutdownStarted) return;
+            await Dispatcher.InvokeAsync(delegate
+            {
+                if (disposed) return;
+                art = backdrop;
+                InvalidateVisual();
+            }).Task.ConfigureAwait(false);
+        }
+        catch (Exception ex) { Trace.TraceWarning("Error al preparar el paisaje: " + ex.GetType().Name); }
+    }
+
+    private async void PrepareActors()
+    {
+        const int originalCount = 6;
+        var initial = sleepers.Select(actor => Prepare(actor.Clip)).ToList();
+        initial.Add(Prepare(wake));
+        initial.Add(Prepare(look));
+        initial.AddRange(guests.Take(originalCount).Select(actor => Prepare(actor.Clip, actor)));
+        var remaining = guests.Skip(originalCount).OrderBy(actor => random.Next()).ToArray();
+        initial.Add(PrepareGuests(remaining, 0));
+        initial.Add(PrepareGuests(remaining, 1));
+        await Task.WhenAll(initial).ConfigureAwait(false);
+    }
+
+    private async Task PrepareGuests(Actor[] queue, int first)
+    {
+        for (int i = first; i < queue.Length && !loadToken.IsCancellationRequested; i += 2)
+            await Prepare(queue[i].Clip, queue[i]).ConfigureAwait(false);
+    }
+
+    private async Task Prepare(LunarClip clip, Actor guest = null)
+    {
+        var token = loadToken;
         LunarFrame[][] frames;
         try { frames = await Task.Run(delegate { return LunarAssets.Load(clip, token); }).ConfigureAwait(false); }
         catch (Exception ex) { Trace.TraceWarning("Error al preparar la orilla: " + ex.GetType().Name); return; }
@@ -129,7 +162,11 @@ internal sealed class LunarScene : FrameworkElement, IDisposable
             {
                 if (disposed) return;
                 clip.Frames = frames;
-                if (guest != null) ready.Add(guest);
+                if (guest != null)
+                {
+                    if (guest.StandingPixels == 0) guest.StandingPixels = frames[0].Max(frame => frame.InkHeight);
+                    ready.Add(guest);
+                }
                 InvalidateVisual();
             }).Task.ConfigureAwait(false);
         }
@@ -205,7 +242,9 @@ internal sealed class LunarScene : FrameworkElement, IDisposable
     private void BeginVisit()
     {
         previousGuest = ready[OtherIndex(ready.Count, ready.IndexOf(previousGuest))];
-        previousStop = OtherIndex(Stops.Length, previousStop);
+        if (previousGuest.ByWater)
+            previousStop = OtherIndex(ShoreStops, previousStop < ShoreStops ? previousStop : -1);
+        else previousStop = OtherIndex(Stops.Length, previousStop);
         int entry = random.Next(3), exit = OtherIndex(3, entry);
         var stop = Stops[previousStop];
         var center = new Point(Number(237, 286), Number(230, 243));
@@ -220,11 +259,13 @@ internal sealed class LunarScene : FrameworkElement, IDisposable
     protected override void OnRender(DrawingContext dc)
     {
         base.OnRender(dc);
-        if (ActualWidth <= 0 || ActualHeight <= 0) return;
+        if (art == null || ActualWidth <= 0 || ActualHeight <= 0) return;
         double scale = Math.Min(ActualWidth / View.Width, ActualHeight / View.Height);
         dc.PushTransform(new MatrixTransform(scale, 0, 0, scale, (ActualWidth - View.Width * scale) / 2, (ActualHeight - View.Height * scale) / 2));
         dc.PushClip(new RectangleGeometry(View));
-        dc.DrawImage(art.Image, View);
+        double seconds = clock / 1000;
+        art.Motion.Draw(dc, View, seconds);
+        fireflies.Draw(dc, seconds);
         for (int i = 0; i < sleepers.Length; i++)
         {
             var actor = sleepers[i];

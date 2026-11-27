@@ -12,25 +12,27 @@ using System.Windows.Media.Imaging;
 internal sealed class LunarFrame
 {
     internal readonly byte[] Pixels;
-    internal readonly int Width, Height, Bottom, InkWidth;
+    internal readonly int Width, Height, Bottom, InkWidth, InkHeight;
     internal readonly double Center;
 
     internal LunarFrame(byte[] pixels, int width, int height)
     {
         Pixels = pixels; Width = width; Height = height;
-        int left = width, right = -1, bottom = -1;
+        int left = width, right = -1, top = height, bottom = -1;
         for (int y = 0; y < height; y++)
             for (int x = 0; x < width; x++)
                 if (pixels[(y * width + x) * 4 + 3] != 0)
                 {
                     left = Math.Min(left, x);
                     right = Math.Max(right, x);
+                    top = Math.Min(top, y);
                     bottom = y;
                 }
         if (bottom < 0) throw new InvalidDataException("Fotograma vacío.");
         Center = (left + right + 1) / 2.0;
         Bottom = bottom + 1;
         InkWidth = right - left + 1;
+        InkHeight = bottom - top + 1;
     }
 }
 
@@ -192,18 +194,20 @@ internal sealed class LunarBackdrop
 {
     internal const int Width = 480, Height = 270;
     internal static readonly Lazy<LunarBackdrop> Resource = new Lazy<LunarBackdrop>(delegate { return new LunarBackdrop(); });
-    internal readonly BitmapSource Image;
+    internal readonly LunarBackdropMotion Motion;
     internal readonly Geometry VisitorClip;
 
     private LunarBackdrop()
     {
+        BitmapSource image;
         using (var input = typeof(LunarBackdrop).Assembly.GetManifestResourceStream("LunarBackdrop.jpg"))
         {
             if (input == null) throw new InvalidDataException("Falta el fondo de la orilla.");
-            Image = BitmapFrame.Create(input, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
-            Image.Freeze();
+            image = BitmapFrame.Create(input, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+            image.Freeze();
         }
-        var bmp = new FormatConvertedBitmap(Image, PixelFormats.Bgra32, null, 0);
+        Motion = new LunarBackdropMotion(image);
+        var bmp = new FormatConvertedBitmap(image, PixelFormats.Bgra32, null, 0);
         int stride = bmp.PixelWidth * 4;
         var pixels = new byte[stride * bmp.PixelHeight];
         bmp.CopyPixels(pixels, stride, 0);
