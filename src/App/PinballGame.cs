@@ -11,13 +11,15 @@ using System.Windows.Threading;
 internal sealed class PinballGame : IDisposable
 {
     private readonly Grid surface, layer, slot;
+    private readonly StackPanel gameFrame;
     private readonly Action closed;
     private readonly TextBlock message;
     private readonly DispatcherTimer timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
     private readonly CancellationTokenSource setup = new CancellationTokenSource();
     private readonly AppSettings settings;
     private string gameName;
-    private StackPanel chooser;
+    private Viewbox chooser;
+    private Border controls;
     private Button firstChoice, secondChoice;
     private PokemonPinballTitle selected;
     private double gameWidth = 440, gameHeight = 860;
@@ -34,7 +36,9 @@ internal sealed class PinballGame : IDisposable
         slot = new Grid { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
         message = new TextBlock { Foreground = Brushes.Bisque, FontSize = 18, Visibility = Visibility.Collapsed,
             HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center, TextWrapping = TextWrapping.Wrap, MaxWidth = 380 };
-        layer.Children.Add(slot); layer.Children.Add(message);
+        gameFrame = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+        gameFrame.Children.Add(slot);
+        layer.Children.Add(gameFrame); layer.Children.Add(message);
         surface.Children.Add(layer); layer.SizeChanged += Resize; Resize(null, null);
         timer.Tick += delegate
         {
@@ -43,7 +47,16 @@ internal sealed class PinballGame : IDisposable
             if (Host.Exited)
             { if (Host.ExitCode == 0) Close(); else Fail(gameName + " no pudo continuar. Puedes volver a intentarlo."); return; }
             Host.Poll();
-            if (Host.ChildReady) message.Visibility = Visibility.Collapsed;
+            if (Host.ChildReady)
+            {
+                message.Visibility = Visibility.Collapsed;
+                if (settings.Theme == AppTheme.Pokemon && controls == null)
+                {
+                    controls = PokemonPinballView.Controls();
+                    gameFrame.Children.Add(controls);
+                    Resize(null, null);
+                }
+            }
             else if (DateTime.UtcNow - nativeStarted > TimeSpan.FromSeconds(30)) Fail("El juego ha tardado demasiado en arrancar.");
         };
         timer.Start();
@@ -53,45 +66,22 @@ internal sealed class PinballGame : IDisposable
 
     private void ShowChooser()
     {
-        chooser = new StackPanel { HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center,
-            Width = 410, Margin = new Thickness(24), Cursor = Cursors.Arrow };
-        chooser.Children.Add(new TextBlock { Text = "Elige el pinball", Foreground = Brushes.Bisque,
-            FontSize = 29, FontWeight = FontWeights.SemiBold, Margin = new Thickness(0, 0, 0, 16) });
-        firstChoice = AddChoice(PokemonPinballTitle.Original, "Game Boy Color");
-        secondChoice = AddChoice(PokemonPinballTitle.RubySapphire, "Game Boy Advance");
-        chooser.Children.Add(new TextBlock
-        {
-            Text = "Palanca izquierda con Ctrl izq. y derecha con Ctrl der. o →.\nEspacio lanza. P para Start o pausa. Esc sale.\nD mueve a la derecha en los menús del juego.",
-            Foreground = new SolidColorBrush(Color.FromRgb(187, 200, 215)),
-            TextWrapping = TextWrapping.Wrap, FontSize = 14, Margin = new Thickness(0, 2, 0, 9)
-        });
-        var back = new Button { Content = "Volver", HorizontalAlignment = HorizontalAlignment.Left,
-            Padding = new Thickness(12, 7, 12, 7), Margin = new Thickness(0, 5, 0, 0) };
+        firstChoice = PokemonPinballView.Choice(PokemonPinballRom.Title(PokemonPinballTitle.Original), "Game Boy Color");
+        secondChoice = PokemonPinballView.Choice(PokemonPinballRom.Title(PokemonPinballTitle.RubySapphire), "Game Boy Advance");
+        var back = PokemonPinballView.Choice("Volver");
+        firstChoice.Click += delegate { StartGame(PokemonPinballTitle.Original); };
+        secondChoice.Click += delegate { StartGame(PokemonPinballTitle.RubySapphire); };
         back.Click += delegate { Close(); };
-        chooser.Children.Add(back);
+        chooser = PokemonPinballView.Chooser(firstChoice, secondChoice, back);
         Select(PokemonPinballTitle.Original);
         layer.Children.Add(chooser);
-    }
-
-    private Button AddChoice(PokemonPinballTitle game, string system)
-    {
-        var contents = new StackPanel();
-        contents.Children.Add(new TextBlock { Text = PokemonPinballRom.Title(game), FontSize = 19, FontWeight = FontWeights.SemiBold });
-        contents.Children.Add(new TextBlock { Text = system, FontSize = 14, Margin = new Thickness(0, 4, 0, 0) });
-        var button = new Button { Content = contents, Padding = new Thickness(14, 10, 14, 10),
-            HorizontalContentAlignment = HorizontalAlignment.Left, Margin = new Thickness(0, 0, 0, 9) };
-        button.Click += delegate { StartGame(game); };
-        chooser.Children.Add(button);
-        return button;
     }
 
     private void Select(PokemonPinballTitle game)
     {
         selected = game;
-        var active = new SolidColorBrush(Color.FromRgb(178, 219, 209));
-        var normal = new SolidColorBrush(Color.FromRgb(212, 217, 226));
-        firstChoice.Background = game == PokemonPinballTitle.Original ? active : normal;
-        secondChoice.Background = game == PokemonPinballTitle.RubySapphire ? active : normal;
+        PokemonPinballView.SetSelected(firstChoice, game == PokemonPinballTitle.Original);
+        PokemonPinballView.SetSelected(secondChoice, game == PokemonPinballTitle.RubySapphire);
     }
 
     private void StartGame(PokemonPinballTitle game)
@@ -154,12 +144,25 @@ internal sealed class PinballGame : IDisposable
     }
     private void Resize(object sender, SizeChangedEventArgs args)
     {
-        double scale = Math.Max(0.1, Math.Min(1.5, Math.Min(Math.Max(1, layer.ActualWidth - 36) / gameWidth, Math.Max(1, layer.ActualHeight - 36) / gameHeight)));
+        double width = Math.Max(1, layer.ActualWidth - 36);
+        double height = Math.Max(1, layer.ActualHeight - 36);
+        if (controls != null)
+        {
+            controls.Width = Math.Min(700, width);
+            controls.Measure(new Size(controls.Width, double.PositiveInfinity));
+            height = Math.Max(1, height - controls.DesiredSize.Height);
+        }
+        double scale = Math.Max(0.1, Math.Min(1.5, Math.Min(width / gameWidth, height / gameHeight)));
         slot.Width = gameWidth * scale; slot.Height = gameHeight * scale;
     }
     private void Fail(string text)
     {
         if (Host != null) { Host.Dispose(); Host = null; slot.Children.Clear(); }
+        if (controls != null)
+        {
+            gameFrame.Children.Remove(controls);
+            controls = null;
+        }
         message.Text = text + "\nEsc para volver."; message.Visibility = Visibility.Visible;
     }
     internal void Key(Key key, bool down, bool repeat)

@@ -1,4 +1,4 @@
-# Drifft Analyzer 1.7.6
+# Drifft Analyzer 1.7.7
 
-- Añade **Mantener el equipo activo al cerrar la tapa** al configurador. Se aplica con batería y con cargador mientras la app esté abierta en la bandeja.
-- La opción viene desactivada. Al desmarcarla o salir de la app, se restaura la acción de cierre de tapa anterior.
+- Los dos Pokémon Pinball muestran una leyenda de controles debajo de la mesa durante la partida.
+- El selector Pokémon usa botones de estilo portátil clásico, con un cursor visible al navegar con el teclado y el mismo diseño para **Volver**.

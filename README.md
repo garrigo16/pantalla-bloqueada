@@ -84,7 +84,7 @@ Añade **Shift al atajo de salida** para abrir el selector. Elige **Pokémon Pin
 - **USA/Australia con vibración** o **Generations 1.6**, para el original, usa [Pinball NS](https://github.com/ReiniShari/Pinball-NS/releases/tag/v2.9).
 - **USA**, para Rubí y Zafiro, usa [JVPPBPort](https://github.com/jonnisvibes/jvppbport/releases/tag/v0.3.0).
 
-En los menús del juego, usa **↑**, **↓**, **←** y **D** para moverte, **Enter** para confirmar y **Retroceso** para volver. **Ctrl izquierdo** acciona la palanca izquierda. **Ctrl derecho** y **→** accionan la derecha. **Espacio** lanza la bola. **P** equivale a **START** y abre la pausa durante la partida. **Esc** vuelve a la simulación.
+Cada mesa muestra debajo una leyenda con las teclas de la partida y de los menús. En los menús del juego, usa **↑**, **↓**, **←** y **D** para moverte, **Enter** para confirmar y **Retroceso** para volver. **Ctrl izquierdo** acciona la palanca izquierda. **Ctrl derecho** y **→** accionan la derecha. **Espacio** lanza la bola. **P** equivale a **START** y abre la pausa durante la partida. **Esc** vuelve a la simulación.
 
 ## Compilar y comprobar
 
