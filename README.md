@@ -16,6 +16,8 @@ Abre el configurador desde el icono del área de notificación. Permite elegir l
 
 Los valores iniciales son una pantalla con fondo durante **20 segundos**, el resto en negro y un movimiento horizontal de **un píxel cada cinco minutos**, alternando sentidos mientras la simulación esté activa. Las pantallas se pintan de negro, sin apagarlas físicamente. La actividad periódica y la petición de energía se detienen al salir de la simulación.
 
+**Mantener el equipo activo al cerrar la tapa** evita que el cierre de la tapa suspenda el portátil. Viene desactivado. Al marcarlo y guardar, la app aplica «No hacer nada» al plan de energía activo, con batería y con cargador, incluso con la simulación cerrada. Al desmarcarlo o salir desde el icono de la bandeja, la app restaura los valores anteriores. Si Windows administra ese ajuste, el configurador informa del error.
+
 **Tema** permite alternar entre **Clásico**, el predeterminado con el fondo habitual, los easter eggs y el pinball de gatos, y **Pokémon**, con el claro animado y un selector de Pokémon Pinball y Pokémon Pinball: Rubí y Zafiro. En Pokémon, el claro aparece en el monitor elegido con un fundido tras **5 segundos en negro**. Puedes cambiar la espera. Con 0 segundos, empieza al pasar a negro. Si mantienes el fondo visible indefinidamente, el claro no aparece.
 
 El paisaje se incluye en el instalador. Los sprites se descargan desde SpriteCollab durante la primera activación y se guardan en la caché local para usos posteriores. Si la primera descarga no está disponible, el paisaje aparece igualmente.

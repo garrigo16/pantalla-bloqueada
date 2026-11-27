@@ -11,6 +11,7 @@ public sealed class AppSettings
     public string DeviceName { get; set; }
     public int TimeoutSeconds { get; set; }
     public bool KeepAwake { get; set; }
+    public bool KeepRunningWithLidClosed { get; set; }
     public bool ShowClock { get; set; }
     public string ImagePath { get; set; }
     public bool SimulateActivity { get; set; }
@@ -36,6 +37,7 @@ public sealed class AppSettings
         DeviceName = "";
         TimeoutSeconds = 20;
         KeepAwake = true;
+        KeepRunningWithLidClosed = false;
         ShowClock = true;
         ImagePath = "";
         SimulateActivity = true;

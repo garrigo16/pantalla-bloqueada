@@ -1,4 +1,4 @@
-Drifft Analyzer 1.7.5 añade la flecha derecha a los controles del pinball de gatos.
+# Drifft Analyzer 1.7.6
 
-- En **Clásico**, la palanca derecha se acciona con **Ctrl derecho** o **→**.
-- Si mantienes ambas teclas pulsadas, la palanca baja al soltar la última.
+- Añade **Mantener el equipo activo al cerrar la tapa** al configurador. Se aplica con batería y con cargador mientras la app esté abierta en la bandeja.
+- La opción viene desactivada. Al desmarcarla o salir de la app, se restaura la acción de cierre de tapa anterior.

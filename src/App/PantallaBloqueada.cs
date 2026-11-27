@@ -28,6 +28,7 @@ internal static class Program
     [STAThread]
     private static int Main(string[] args)
     {
+        if (args.Length == 1 && LidPowerSession.IsWorker(args[0])) return LidPowerSession.RunWorker(args[0]);
         bool ownsMutex = false;
         Mutex mutex = null;
         try
@@ -110,6 +111,8 @@ internal sealed partial class LockController : IDisposable
     private bool activating;
     private bool sessionLocked;
     private AppSettings settings;
+    private LidPowerSession lidPower;
+    private string lidPowerError;
     private SettingsWindow configuration;
     private readonly Stopwatch elapsed = new Stopwatch();
     private readonly DispatcherTimer blackout = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
@@ -198,6 +201,8 @@ internal sealed partial class LockController : IDisposable
                     catch { tray.ShowBalloonTip(5000, AppIdentity.DisplayName, "No se pudo activar la simulación. Puedes volver a intentarlo manualmente.", Forms.ToolTipIcon.Warning); }
                 });
             idle.Start();
+            try { SetLidPower(settings.KeepRunningWithLidClosed); }
+            catch (Exception ex) { ReportLidPowerError(ex); }
             if (hotkeyError != null) Dispatch(OpenSettings);
         }
         catch { Dispose(); throw; }
@@ -307,11 +312,31 @@ internal sealed partial class LockController : IDisposable
     {
         if (windows.Count != 0) return;
         if (configuration != null) { configuration.Activate(); return; }
-        configuration = new SettingsWindow(settings, updates, fun.Stats, SavePreferences);
+        configuration = new SettingsWindow(settings, updates, fun.Stats, SavePreferences, lidPowerError);
         configuration.Saved += delegate(AppSettings updated) { settings = updated; if (idle != null) idle.Reset(); };
         configuration.Closed += delegate { configuration = null; };
         configuration.Show();
         if (hotkeyError != null) configuration.ShowShortcutError(hotkeyError);
+    }
+
+    private void SetLidPower(bool enabled)
+    {
+        if (!enabled && lidPower != null)
+        {
+            var previous = lidPower;
+            lidPower = null;
+            previous.Stop();
+        }
+        if (lidPower == null) lidPower = LidPowerSession.Start(enabled);
+        lidPowerError = null;
+    }
+
+    private void ReportLidPowerError(Exception ex)
+    {
+        UpdateLog.Write("ajuste-tapa", ex);
+        lidPowerError = ex.Message;
+        if (tray != null)
+            tray.ShowBalloonTip(6000, AppIdentity.DisplayName, "Ajuste de cierre de tapa. " + lidPowerError, Forms.ToolTipIcon.Warning);
     }
 
     private void UpdatesChanged(object sender, EventArgs e)
@@ -352,6 +377,8 @@ internal sealed partial class LockController : IDisposable
         if (updates != null) { updates.Changed -= UpdatesChanged; updates.Dispose(); }
         if (configuration != null) configuration.Close();
         Hide();
+        try { SetLidPower(false); }
+        catch (Exception ex) { ReportLidPowerError(ex); }
         if (toggleWait != null) toggleWait.Unregister(null);
         if (quitWait != null) quitWait.Unregister(null);
         if (configWait != null) configWait.Unregister(null);

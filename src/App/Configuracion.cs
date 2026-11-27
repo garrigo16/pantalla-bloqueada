@@ -53,6 +53,7 @@ internal sealed class SettingsWindow : Window
     private readonly ComboBox displays;
     private readonly TextBox timeout;
     private readonly CheckBox keepAwake;
+    private readonly CheckBox keepRunningWithLidClosed;
     private readonly CheckBox showClock;
     private readonly CheckBox startup;
     private readonly CheckBox simulateActivity;
@@ -78,7 +79,7 @@ internal sealed class SettingsWindow : Window
     private readonly Action<AppSettings, bool> savePreferences;
     private string imagePath, pokemonRomPath, pokemonRubyRomPath;
 
-    internal SettingsWindow(AppSettings settings, UpdateManager updateManager = null, FunStats statistics = null, Action<AppSettings, bool> saveSettings = null)
+    internal SettingsWindow(AppSettings settings, UpdateManager updateManager = null, FunStats statistics = null, Action<AppSettings, bool> saveSettings = null, string lidPowerError = null)
     {
         updates = updateManager;
         savePreferences = saveSettings;
@@ -170,6 +171,8 @@ internal sealed class SettingsWindow : Window
       </StackPanel>
       <CheckBox x:Name='keepAwake' Content='Evitar suspensión y apagado por inactividad'/>
       <TextBlock Text='Se aplica únicamente mientras la simulación esté activa.' Foreground='#A6B6D1' FontSize='14' TextWrapping='Wrap' Margin='0,-5,0,20'/>
+      <CheckBox x:Name='keepRunningWithLidClosed' Content='Mantener el equipo activo al cerrar la tapa'/>
+      <TextBlock x:Name='lidPowerHint' Text='Con batería o cargador, mientras la app siga abierta en la bandeja.' Foreground='#A6B6D1' FontSize='14' TextWrapping='Wrap' Margin='0,-5,0,20'/>
       <CheckBox x:Name='startup' Content='Iniciar con Windows'/>
       <Expander Header='Bromas y easter eggs' IsExpanded='True' Foreground='White' Margin='0,10,0,16'>
         <Border Background='#1A2740' CornerRadius='9' Padding='16' Margin='0,10,0,0'>
@@ -215,6 +218,13 @@ internal sealed class SettingsWindow : Window
         displays = (ComboBox)root.FindName("displays");
         timeout = (TextBox)root.FindName("timeout");
         keepAwake = (CheckBox)root.FindName("keepAwake");
+        keepRunningWithLidClosed = (CheckBox)root.FindName("keepRunningWithLidClosed");
+        if (lidPowerError != null)
+        {
+            var hint = (TextBlock)root.FindName("lidPowerHint");
+            hint.Text = "Windows no pudo aplicar o restaurar el ajuste. " + lidPowerError;
+            hint.Foreground = new SolidColorBrush(Color.FromRgb(255, 172, 172));
+        }
         showClock = (CheckBox)root.FindName("showClock");
         startup = (CheckBox)root.FindName("startup");
         simulateActivity = (CheckBox)root.FindName("simulateActivity");
@@ -238,6 +248,7 @@ internal sealed class SettingsWindow : Window
         RefreshScreens(settings.DeviceName);
         timeout.Text = settings.TimeoutSeconds.ToString(CultureInfo.InvariantCulture);
         keepAwake.IsChecked = settings.KeepAwake;
+        keepRunningWithLidClosed.IsChecked = settings.KeepRunningWithLidClosed;
         showClock.IsChecked = settings.ShowClock;
         startup.IsChecked = Startup.Enabled;
         simulateActivity.IsChecked = settings.SimulateActivity;
@@ -454,6 +465,7 @@ internal sealed class SettingsWindow : Window
             {
                 DeviceName = selected.Screen.DeviceName, TimeoutSeconds = seconds,
                 KeepAwake = keepAwake.IsChecked == true, ShowClock = showClock.IsChecked == true,
+                KeepRunningWithLidClosed = keepRunningWithLidClosed.IsChecked == true,
                 ImagePath = imagePath ?? "",
                 SimulateActivity = simulateActivity.IsChecked == true, ActivityIntervalSeconds = interval,
                 AutoActivate = autoActivate.IsChecked == true, IdleSeconds = idle,

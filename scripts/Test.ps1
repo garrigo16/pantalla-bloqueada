@@ -20,6 +20,11 @@ $idleTests = Join-Path $build 'IdleActivationTests.exe'
 if ($LASTEXITCODE -ne 0) { throw 'Error al compilar las pruebas de inactividad.' }
 & $idleTests
 if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas de inactividad.' }
+$lidTests = Join-Path $build 'LidPowerTests.exe'
+& $compiler /nologo /target:exe /main:LidPowerTests /codepage:65001 ('/out:' + $lidTests) @shared (Join-Path $repo 'src\App\LidPowerSession.cs') (Join-Path $repo 'tests\LidPowerTests.cs')
+if ($LASTEXITCODE -ne 0) { throw 'Error al compilar las pruebas de energía.' }
+& $lidTests
+if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas de energía.' }
 $funTests = Join-Path $build 'EasterEggTests.exe'
 & $compiler /nologo /target:exe /main:EasterEggTests /codepage:65001 ('/out:' + $funTests) @shared (Join-Path $repo 'src\App\EasterEggEngine.cs') (Join-Path $repo 'tests\EasterEggTests.cs')
 if ($LASTEXITCODE -ne 0) { throw 'Error al compilar las pruebas de easter eggs.' }

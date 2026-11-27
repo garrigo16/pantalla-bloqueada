@@ -23,19 +23,37 @@ internal sealed partial class LockController
         {
             bool previousStartup = Startup.Enabled;
             bool startupChanged = previousStartup != desiredStartup;
+            bool previousLidPower = lidPower != null;
+            bool lidChanged = settings.KeepRunningWithLidClosed != updated.KeepRunningWithLidClosed;
+            bool lidAttempted = false;
             try
             {
                 if (startupChanged) Startup.Enabled = desiredStartup;
+                if (lidChanged)
+                {
+                    lidAttempted = true;
+                    try { SetLidPower(updated.KeepRunningWithLidClosed); }
+                    catch (Exception ex) { throw new IOException("Cierre de tapa. " + ex.Message, ex); }
+                }
                 updated.Save();
                 change.Commit(); hotkeyError = null;
             }
             catch (Exception original)
             {
+                Exception rollback = null;
+                if (lidAttempted)
+                {
+                    try { SetLidPower(previousLidPower); }
+                    catch (Exception ex) { ReportLidPowerError(ex); rollback = ex; }
+                }
                 if (startupChanged)
                 {
                     try { Startup.Enabled = previousStartup; }
-                    catch (Exception restoration) { throw new IOException("No se pudo guardar ni restaurar el inicio automático.", new AggregateException(original, restoration)); }
+                    catch (Exception ex) { rollback = rollback == null ? ex : new AggregateException(rollback, ex); }
                 }
+                if (rollback != null)
+                    throw new IOException(original.Message + " No se pudieron restaurar todos los ajustes anteriores.",
+                        new AggregateException(original, rollback));
                 throw;
             }
         }
